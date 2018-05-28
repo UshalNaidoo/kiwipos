@@ -17,6 +17,15 @@ public class DummyContent {
    */
   public static final List<DummyItem> ITEMS = new ArrayList<>();
 
+  public static List<DummyItem> getTestItems() {
+    List<DummyItem> ITEMS = new ArrayList<>();
+    ITEMS.add(createDummyItem("11", "blah"));
+    ITEMS.add(createDummyItem("2211", "as"));
+    ITEMS.add(createDummyItem("1122", "asda"));
+    ITEMS.add(createDummyItem("1133", "wdwd"));
+    ITEMS.add(createDummyItem("1144", "qqwqw"));
+    return ITEMS;
+  }
   /**
    * A map of sample (dummy) items, by ID.
    */

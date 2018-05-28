@@ -12,6 +12,15 @@
   <TextView
       style="?android:attr/textAppearanceLarge"
       android:id="@+id/content"
+      android:text="vdsvs"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_margin="@dimen/text_margin"
+      android:textAppearance="?attr/textAppearanceListItem"/>
+  <TextView
+      style="?android:attr/textAppearanceLarge"
+      android:id="@+id/price"
+      android:text="$12.00"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_margin="@dimen/text_margin"

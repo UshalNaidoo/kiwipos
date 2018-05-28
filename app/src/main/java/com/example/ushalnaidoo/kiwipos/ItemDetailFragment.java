@@ -10,7 +10,7 @@ import com.example.ushalnaidoo.kiwipos.dummy.DummyContent;
 
 /**
  * A fragment representing a single Item detail screen.
- * This fragment is either contained in a {@link ItemListActivity}
+ * This fragment is either contained in a {@link CategoryListActivity}
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
@@ -48,7 +48,7 @@ public class ItemDetailFragment extends Fragment {
     View rootView = inflater.inflate(R.layout.item_detail, container, false);
 
     if (mItem != null) {
-      ((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.details);
+      ((TextView) rootView.findViewById(R.id.tvTitle)).setText(mItem.details);
     }
 
     return rootView;
