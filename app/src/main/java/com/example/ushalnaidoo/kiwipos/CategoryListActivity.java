@@ -17,7 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.ushalnaidoo.kiwipos.dummy.DummyContent;
+import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -69,23 +69,23 @@ public class CategoryListActivity extends AppCompatActivity {
   }
 
   private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
+    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Categories.CATEGORIES, mTwoPane));
   }
 
   public static class SimpleItemRecyclerViewAdapter
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
     private final CategoryListActivity mParentActivity;
-    private final List<DummyContent.DummyItem> mValues;
+    private final List<Categories.Category> categories;
     private final boolean mTwoPane;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
+        Categories.Category category = (Categories.Category) view.getTag();
         if (mTwoPane) {
           Bundle arguments = new Bundle();
-          arguments.putString(ItemDetailFragment.ARG_ITEM_ID, item.id);
+          arguments.putString(ItemDetailFragment.ARG_ITEM_ID, category.id);
           ItemDetailFragment fragment = new ItemDetailFragment();
           fragment.setArguments(arguments);
           mParentActivity.getSupportFragmentManager().beginTransaction()
@@ -94,7 +94,7 @@ public class CategoryListActivity extends AppCompatActivity {
         } else {
           Context context = view.getContext();
           Intent intent = new Intent(context, ItemDetailActivity.class);
-          intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, item.id);
+          intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, category.id);
 
           context.startActivity(intent);
         }
@@ -102,9 +102,9 @@ public class CategoryListActivity extends AppCompatActivity {
     };
 
     SimpleItemRecyclerViewAdapter(CategoryListActivity parent,
-                                  List<DummyContent.DummyItem> items,
+                                  List<Categories.Category> categories,
                                   boolean twoPane) {
-      mValues = items;
+      this.categories = categories;
       mParentActivity = parent;
       mTwoPane = twoPane;
     }
@@ -112,28 +112,28 @@ public class CategoryListActivity extends AppCompatActivity {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       View view = LayoutInflater.from(parent.getContext())
-          .inflate(R.layout.item_list_content, parent, false);
+          .inflate(R.layout.category_list_content, parent, false);
       return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-      holder.mContentView.setText(mValues.get(position).content);
-      holder.itemView.setTag(mValues.get(position));
+      holder.categoryName.setText(categories.get(position).categoryName);
+      holder.itemView.setTag(categories.get(position));
       holder.itemView.setOnClickListener(mOnClickListener);
     }
 
     @Override
     public int getItemCount() {
-      return mValues.size();
+      return categories.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-      final TextView mContentView;
+      final TextView categoryName;
 
       ViewHolder(View view) {
         super(view);
-        mContentView = view.findViewById(R.id.content);
+        categoryName = view.findViewById(R.id.categoryName);
       }
     }
   }
@@ -162,14 +162,14 @@ public class CategoryListActivity extends AppCompatActivity {
         if (jsonPosts != null) {
           for (int i = 0; i < jsonPosts.length(); i++) {
             JSONObject jsonObject = jsonPosts.getJSONObject(i);
-            DummyContent.addItem(DummyContent.createDummyItem(jsonObject.getString("_id"), jsonObject.getString("name")));
+            Categories.addCategory(Categories.createCategory(jsonObject.getString("_id"), jsonObject.getString("name")));
           }
 
           setupRecyclerView((RecyclerView) recyclerView);
         }
       }
       catch (JSONException e) {
-        Log.e("Error", "error ", e);
+        Log.e("Error", "error getting categories ", e);
       }
     }
   }

@@ -1,12 +1,26 @@
 package com.example.ushalnaidoo.kiwipos;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.example.ushalnaidoo.kiwipos.dummy.DummyContent;
+import com.example.ushalnaidoo.kiwipos.model.Categories;
+import com.example.ushalnaidoo.kiwipos.model.Items;
+import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -23,9 +37,9 @@ public class ItemDetailFragment extends Fragment {
   public static final String ARG_ITEM_ID = "item_id";
 
   /**
-   * The dummy content this fragment is presenting.
+   * The dummy categoryName this fragment is presenting.
    */
-  private DummyContent.DummyItem mItem;
+  private Categories.Category mItem;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -38,7 +52,7 @@ public class ItemDetailFragment extends Fragment {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (getArguments().containsKey(ARG_ITEM_ID)) {
-      mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+      mItem = Categories.HASH_MAP.get(getArguments().getString(ARG_ITEM_ID));
     }
   }
 
@@ -48,9 +62,102 @@ public class ItemDetailFragment extends Fragment {
     View rootView = inflater.inflate(R.layout.item_detail, container, false);
 
     if (mItem != null) {
-      ((TextView) rootView.findViewById(R.id.tvTitle)).setText(mItem.details);
+      ((TextView) rootView.findViewById(R.id.tvTitle)).setText(mItem.categoryName);
+
+      RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
+      assert recyclerView != null;
+
+      RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
+      recyclerView.setLayoutManager(mLayoutManager);
+      Items.ITEMS.clear();
+      new GetItemsForCategory(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
     }
 
     return rootView;
+  }
+
+  private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(Items.ITEMS));
+  }
+  public static class SimpleItemRecyclerViewAdapter
+      extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+
+    private final List<Items.Item> mValues;
+
+    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Items.Item item = (Items.Item) view.getTag();
+      }
+    };
+
+    SimpleItemRecyclerViewAdapter(List<Items.Item> items) {
+      mValues = items;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      View view = LayoutInflater.from(parent.getContext())
+                                .inflate(R.layout.item_list_content, parent, false);
+      return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
+      holder.itemName.setText(mValues.get(position).itemName);
+      holder.price.setText(String.format("$%s", mValues.get(position).itemPrice));
+      holder.itemView.setTag(mValues.get(position));
+      holder.itemView.setOnClickListener(mOnClickListener);
+    }
+
+    @Override
+    public int getItemCount() {
+      return mValues.size();
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+      final TextView itemName;
+      final TextView price;
+
+      ViewHolder(View view) {
+        super(view);
+        itemName = view.findViewById(R.id.itemName);
+        price = view.findViewById(R.id.price);
+      }
+    }
+  }
+  @SuppressLint("StaticFieldLeak")
+  private class GetItemsForCategory extends AsyncTask<Integer, Integer, String> {
+    RecyclerView recyclerView;
+
+    GetItemsForCategory(RecyclerView recyclerView) {
+      this.recyclerView = recyclerView;
+    }
+    @Override
+    protected String doInBackground(Integer... params) {
+      Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+      return ConnectToServer.getItemsForCategory(mItem.id);
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+      JSONObject json;
+      JSONArray jsonPosts;
+      try {
+        json = new JSONObject(result);
+        jsonPosts = json.getJSONArray("items");
+        if (jsonPosts != null) {
+          for (int i = 0; i < jsonPosts.length(); i++) {
+            JSONObject jsonObject = jsonPosts.getJSONObject(i);
+            Items.addItem(Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price")));
+          }
+          setupRecyclerView(recyclerView);
+        }
+      }
+      catch (JSONException e) {
+        Log.e("Error", "error getting categories ", e);
+      }
+    }
   }
 }

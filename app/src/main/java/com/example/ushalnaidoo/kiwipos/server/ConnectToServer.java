@@ -15,4 +15,15 @@ public class ConnectToServer {
     return null;
   }
 
+  public static String getItemsForCategory(String groupId) {
+    String parameters = "key=AoD93128Jd73jKH31je3&&groupid="+groupId;
+    String UrlString = ServerSettings.SERVER + ServerSettings.ITEMS_FOR_CATEGORY;
+    try {
+      return "{\"items\":" + Connect.connectToServer(UrlString, parameters) + "}";
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving items", e);
+    }
+    return null;
+  }
+
 }
