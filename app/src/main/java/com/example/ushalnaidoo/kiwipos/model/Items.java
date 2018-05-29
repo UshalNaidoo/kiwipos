@@ -13,6 +13,10 @@ public class Items {
   public static void addItem(Item item) {
     ITEMS.add(item);
   }
+  public static void replaceItems(List<Item> items) {
+    ITEMS.clear();
+    ITEMS.addAll(items);
+  }
 
   public static Item createItem(String id, String name, String price) {
     return new Item(id, name, price);

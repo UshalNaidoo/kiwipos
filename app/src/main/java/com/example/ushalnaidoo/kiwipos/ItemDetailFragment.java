@@ -120,41 +120,46 @@ public class ItemDetailFragment extends Fragment {
     }
   }
   @SuppressLint("StaticFieldLeak")
-  private class GetItemsForCategory extends AsyncTask<Integer, Integer, String> {
+  private class GetItemsForCategory extends AsyncTask<Integer, Integer,  List<Items.Item>> {
     RecyclerView recyclerView;
 
     GetItemsForCategory(RecyclerView recyclerView) {
       this.recyclerView = recyclerView;
     }
     @Override
-    protected String doInBackground(Integer... params) {
+    protected  List<Items.Item> doInBackground(Integer... params) {
       Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-//      return Categories.readFromCache(mItem) == null ? ConnectToServer.getItemsForCategory(mItem.id) : Categories.readFromCache(mItem);
-      return ConnectToServer.getItemsForCategory(mItem.id);
+
+      JSONObject json;
+      JSONArray jsonPosts;
+      List<Items.Item> itemsForCache = new ArrayList<>();
+      if(Categories.readFromCache(mItem) == null) {
+        try {
+          json = new JSONObject(ConnectToServer.getItemsForCategory(mItem.id));
+          jsonPosts = json.getJSONArray(ConnectToServer.ITEMS);
+          if (jsonPosts != null) {
+            for (int i = 0; i < jsonPosts.length(); i++) {
+              JSONObject jsonObject = jsonPosts.getJSONObject(i);
+              Items.Item item = Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price"));
+              Items.addItem(item);
+              itemsForCache.add(item);
+            }
+            Categories.addToCache(mItem, itemsForCache);
+          }
+        }
+        catch (JSONException e) {
+          Log.e("Error", "error getting categories ", e);
+        }
+      }
+      else {
+        Items.replaceItems(Categories.readFromCache(mItem));
+      }
+      return itemsForCache;
     }
 
     @Override
-    protected void onPostExecute(String result) {
-      JSONObject json;
-      JSONArray jsonPosts;
-      try {
-        json = new JSONObject(result);
-        jsonPosts = json.getJSONArray(ConnectToServer.ITEMS);
-        if (jsonPosts != null) {
-          List<Items.Item> itemsForCache = new ArrayList<>();
-          for (int i = 0; i < jsonPosts.length(); i++) {
-            JSONObject jsonObject = jsonPosts.getJSONObject(i);
-            Items.Item item = Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price"));
-            Items.addItem(item);
-            itemsForCache.add(item);
-          }
-          Categories.addToCache(mItem, itemsForCache);
-          setupRecyclerView(recyclerView);
-        }
-      }
-      catch (JSONException e) {
-        Log.e("Error", "error getting categories ", e);
-      }
+    protected void onPostExecute(List<Items.Item> result) {
+      setupRecyclerView(recyclerView);
     }
   }
 }
