@@ -35,17 +35,12 @@ import java.util.List;
  */
 public class CategoryListActivity extends AppCompatActivity {
 
-  /**
-   * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-   * device.
-   */
-  private boolean mTwoPane;
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_item_list);
 
+    Categories.CATEGORIES.clear();
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
     toolbar.setTitle(getTitle());
@@ -59,17 +54,13 @@ public class CategoryListActivity extends AppCompatActivity {
       }
     });
 
-    if (findViewById(R.id.item_detail_container) != null) {
-      mTwoPane = true;
-    }
-
     View recyclerView = findViewById(R.id.item_list);
     assert recyclerView != null;
     new GetCategories(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
   }
 
   private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Categories.CATEGORIES, mTwoPane));
+    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Categories.CATEGORIES));
   }
 
   public static class SimpleItemRecyclerViewAdapter
@@ -77,36 +68,25 @@ public class CategoryListActivity extends AppCompatActivity {
 
     private final CategoryListActivity mParentActivity;
     private final List<Categories.Category> categories;
-    private final boolean mTwoPane;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         Categories.Category category = (Categories.Category) view.getTag();
-        if (mTwoPane) {
           Bundle arguments = new Bundle();
-          arguments.putString(ItemDetailFragment.ARG_ITEM_ID, category.id);
+          arguments.putString(ItemDetailFragment.CATEGORY_ID, category.id);
           ItemDetailFragment fragment = new ItemDetailFragment();
           fragment.setArguments(arguments);
           mParentActivity.getSupportFragmentManager().beginTransaction()
               .replace(R.id.item_detail_container, fragment)
               .commit();
-        } else {
-          Context context = view.getContext();
-          Intent intent = new Intent(context, ItemDetailActivity.class);
-          intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, category.id);
-
-          context.startActivity(intent);
-        }
       }
     };
 
     SimpleItemRecyclerViewAdapter(CategoryListActivity parent,
-                                  List<Categories.Category> categories,
-                                  boolean twoPane) {
+                                  List<Categories.Category> categories) {
       this.categories = categories;
       mParentActivity = parent;
-      mTwoPane = twoPane;
     }
 
     @Override
@@ -157,7 +137,7 @@ public class CategoryListActivity extends AppCompatActivity {
       JSONArray jsonPosts;
       try {
         json = new JSONObject(result);
-        jsonPosts = json.getJSONArray("categories");
+        jsonPosts = json.getJSONArray(ConnectToServer.CATEGORIES);
 
         if (jsonPosts != null) {
           for (int i = 0; i < jsonPosts.length(); i++) {

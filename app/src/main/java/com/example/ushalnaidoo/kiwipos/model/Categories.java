@@ -10,6 +10,8 @@ public class Categories {
   public static final List<Category> CATEGORIES = new ArrayList<>();
   public static final Map<String, Category> HASH_MAP = new HashMap<>();
 
+  //TODO cache all the items in the category
+
   public static void addCategory(Category item) {
     CATEGORIES.add(item);
     HASH_MAP.put(item.id, item);

@@ -8,21 +8,14 @@ import java.util.Map;
 public class Items {
 
   public static final List<Item> ITEMS = new ArrayList<>();
-  public static final Map<String, Item> ITEM_MAP = new HashMap<>();
+  public static final Map<Item,Integer> CHECKOUT_ITEMS = new HashMap<>();
 
   public static void addItem(Item item) {
     ITEMS.add(item);
-    ITEM_MAP.put(item.id, item);
   }
 
   public static Item createItem(String id, String name, String price) {
     return new Item(id, name, price);
-  }
-
-  public static List<Item> getTestItems() {
-    List<Item> testItems = new ArrayList<>();
-    testItems.add(createItem("12","Cat1", "1200"));
-    return testItems;
   }
 
   public static class Item {
@@ -39,6 +32,15 @@ public class Items {
     @Override
     public String toString() {
       return itemName;
+    }
+  }
+
+  public static void addToCheckout(Item itemToAdd){
+    if (!CHECKOUT_ITEMS.containsKey(itemToAdd)) {
+      CHECKOUT_ITEMS.put(itemToAdd,1);
+    }
+    else {
+      CHECKOUT_ITEMS.put(itemToAdd, CHECKOUT_ITEMS.get(itemToAdd)+1);
     }
   }
 

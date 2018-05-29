@@ -1,8 +1,5 @@
 package com.example.ushalnaidoo.kiwipos;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,44 +12,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * A fragment representing a single Item detail screen.
- * This fragment is either contained in a {@link CategoryListActivity}
- * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
- * on handsets.
- */
+import java.util.List;
+
 public class ItemDetailFragment extends Fragment {
 
-  /**
-   * The fragment argument representing the item ID that this fragment
-   * represents.
-   */
-  public static final String ARG_ITEM_ID = "item_id";
-
-  /**
-   * The dummy categoryName this fragment is presenting.
-   */
+  public static final String CATEGORY_ID = "category_id";
   private Categories.Category mItem;
 
-  /**
-   * Mandatory empty constructor for the fragment manager to instantiate the
-   * fragment (e.g. upon screen orientation changes).
-   */
   public ItemDetailFragment() {
   }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (getArguments().containsKey(ARG_ITEM_ID)) {
-      mItem = Categories.HASH_MAP.get(getArguments().getString(ARG_ITEM_ID));
+    if (getArguments().containsKey(CATEGORY_ID)) {
+      mItem = Categories.HASH_MAP.get(getArguments().getString(CATEGORY_ID));
     }
   }
 
@@ -66,34 +49,42 @@ public class ItemDetailFragment extends Fragment {
 
       RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
       assert recyclerView != null;
-
       RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
       recyclerView.setLayoutManager(mLayoutManager);
       Items.ITEMS.clear();
       new GetItemsForCategory(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
     }
 
     return rootView;
   }
 
   private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(Items.ITEMS));
+    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Items.ITEMS));
   }
+
   public static class SimpleItemRecyclerViewAdapter
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
+    private final ItemDetailFragment mParentActivity;
     private final List<Items.Item> mValues;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         Items.Item item = (Items.Item) view.getTag();
+        Items.addToCheckout(item);
+        Bundle arguments = new Bundle();
+        arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
+        CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+        checkoutDetailFragment.setArguments(arguments);
+        mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                .commit();
       }
     };
 
-    SimpleItemRecyclerViewAdapter(List<Items.Item> items) {
+    SimpleItemRecyclerViewAdapter(ItemDetailFragment parent, List<Items.Item> items) {
       mValues = items;
+      mParentActivity = parent;
     }
 
     @Override
@@ -146,7 +137,7 @@ public class ItemDetailFragment extends Fragment {
       JSONArray jsonPosts;
       try {
         json = new JSONObject(result);
-        jsonPosts = json.getJSONArray("items");
+        jsonPosts = json.getJSONArray(ConnectToServer.ITEMS);
         if (jsonPosts != null) {
           for (int i = 0; i < jsonPosts.length(); i++) {
             JSONObject jsonObject = jsonPosts.getJSONObject(i);

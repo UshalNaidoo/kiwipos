@@ -7,6 +7,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.example.ushalnaidoo.kiwipos.model.Items;
+
 /**
  * An activity representing a single Item detail screen. This
  * activity is only used on narrow width devices. On tablet-size devices,
@@ -19,6 +21,7 @@ public class ItemDetailActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_item_detail);
+    Items.CHECKOUT_ITEMS.clear();
     ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
       actionBar.setDisplayHomeAsUpEnabled(true);
@@ -26,16 +29,19 @@ public class ItemDetailActivity extends AppCompatActivity {
 
     if (savedInstanceState == null) {
       Bundle arguments = new Bundle();
-      arguments.putString(ItemDetailFragment.ARG_ITEM_ID,
-                          getIntent().getStringExtra(ItemDetailFragment.ARG_ITEM_ID));
-      ItemDetailFragment fragment = new ItemDetailFragment();
-      fragment.setArguments(arguments);
+      arguments.putString(ItemDetailFragment.CATEGORY_ID,
+                          getIntent().getStringExtra(ItemDetailFragment.CATEGORY_ID));
+      ItemDetailFragment itemDetailFragment = new ItemDetailFragment();
+      itemDetailFragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()
-                                 .add(R.id.item_detail_container, fragment)
-                                 .commit();
+              .add(R.id.item_detail_container, itemDetailFragment)
+              .commit();
+      CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+      getSupportFragmentManager().beginTransaction()
+              .add(R.id.checkout_detail_container, checkoutDetailFragment)
+              .commit();
     }
   }
-
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
