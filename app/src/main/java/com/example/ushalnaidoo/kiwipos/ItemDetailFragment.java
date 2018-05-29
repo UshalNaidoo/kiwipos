@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ItemDetailFragment extends Fragment {
@@ -128,6 +129,7 @@ public class ItemDetailFragment extends Fragment {
     @Override
     protected String doInBackground(Integer... params) {
       Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+//      return Categories.readFromCache(mItem) == null ? ConnectToServer.getItemsForCategory(mItem.id) : Categories.readFromCache(mItem);
       return ConnectToServer.getItemsForCategory(mItem.id);
     }
 
@@ -139,10 +141,14 @@ public class ItemDetailFragment extends Fragment {
         json = new JSONObject(result);
         jsonPosts = json.getJSONArray(ConnectToServer.ITEMS);
         if (jsonPosts != null) {
+          List<Items.Item> itemsForCache = new ArrayList<>();
           for (int i = 0; i < jsonPosts.length(); i++) {
             JSONObject jsonObject = jsonPosts.getJSONObject(i);
-            Items.addItem(Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price")));
+            Items.Item item = Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price"));
+            Items.addItem(item);
+            itemsForCache.add(item);
           }
+          Categories.addToCache(mItem, itemsForCache);
           setupRecyclerView(recyclerView);
         }
       }

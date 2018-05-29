@@ -43,5 +43,4 @@ public class Items {
       CHECKOUT_ITEMS.put(itemToAdd, CHECKOUT_ITEMS.get(itemToAdd)+1);
     }
   }
-
 }

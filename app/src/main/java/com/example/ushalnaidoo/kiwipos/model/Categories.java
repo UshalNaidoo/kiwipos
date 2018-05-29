@@ -9,6 +9,7 @@ public class Categories {
 
   public static final List<Category> CATEGORIES = new ArrayList<>();
   public static final Map<String, Category> HASH_MAP = new HashMap<>();
+  public static final Map<Category,List<Items.Item>> cache = new HashMap<>();
 
   //TODO cache all the items in the category
 
@@ -36,4 +37,16 @@ public class Categories {
     }
   }
 
+  public static void addToCache(Categories.Category category, List<Items.Item> items) {
+    if (!cache.containsKey(category)) {
+      cache.put(category,items);
+    }
+  }
+
+  public static List<Items.Item> readFromCache(Category category) {
+    if (cache.containsKey(category)) {
+      return cache.get(category);
+    }
+    return null;
+  }
 }

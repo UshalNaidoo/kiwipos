@@ -41,7 +41,8 @@ public class CheckoutDetailFragment extends Fragment {
       total += Double.valueOf(item.itemPrice)*value;
     }
 
-    ((TextView) rootView.findViewById(R.id.total)).setText("Total: $" +  total);
+    String totalText = "Total: $" +  String.format("%.2f", total);
+    ((TextView) rootView.findViewById(R.id.total)).setText(totalText);
 
     RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
     assert recyclerView != null;
