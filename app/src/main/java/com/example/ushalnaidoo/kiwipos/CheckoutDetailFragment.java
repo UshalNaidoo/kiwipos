@@ -1,39 +1,39 @@
 package com.example.ushalnaidoo.kiwipos;
 
-import android.annotation.SuppressLint;
-import android.os.AsyncTask;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
-import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class CheckoutDetailFragment extends Fragment {
   public CheckoutDetailFragment() {
   }
+  static TextView totalText;
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     View rootView = inflater.inflate(R.layout.checkout_detail, container, false);
+    totalText = rootView.findViewById(R.id.total);
+    setTotalValue();
+
+    RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
+    assert recyclerView != null;
+    setupRecyclerView(recyclerView);
+    return rootView;
+  }
+
+  private static void setTotalValue() {
     Double total = 0.0;
     for (Map.Entry<Items.Item, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
       Items.Item item = entry.getKey();
@@ -41,14 +41,8 @@ public class CheckoutDetailFragment extends Fragment {
       total += Double.valueOf(item.itemPrice)*value;
     }
 
-    String totalText = "Total: $" +  String.format("%.2f", total);
-    ((TextView) rootView.findViewById(R.id.total)).setText(totalText);
-
-    RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
-    assert recyclerView != null;
-//      new GetItemsForCategory(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    setupRecyclerView(recyclerView);
-    return rootView;
+    String totalString = "Total: $" +  String.format("%.2f", total);
+    totalText.setText(totalString);
   }
 
   private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -59,6 +53,7 @@ public class CheckoutDetailFragment extends Fragment {
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
     private final Map<Items.Item, Integer> mValues;
 
+    private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter = this;
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -78,21 +73,50 @@ public class CheckoutDetailFragment extends Fragment {
     }
 
     @Override
-    public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, final int position) {
       //Get fields to display
-      List<String> items = new ArrayList<>();
+      final List<Items.Item> items = new ArrayList<>();
+      List<String> itemNames = new ArrayList<>();
       List<String> prices = new ArrayList<>();
+
       for (Map.Entry<Items.Item, Integer> entry : mValues.entrySet()) {
         Items.Item item = entry.getKey();
+        items.add(item);
         Integer amount = entry.getValue();
-        items.add(String.valueOf(amount) + "x " + item.itemName);
+        itemNames.add(String.valueOf(amount) + "x " + item.itemName);
         prices.add(String.valueOf(Double.valueOf(item.itemPrice)*amount));
       }
 
-      holder.detail.setText(items.get(position));
+      holder.detail.setText(itemNames.get(position));
       holder.amount.setText(String.format("$%s", prices.get(position)));
-      holder.itemView.setTag(mValues.get(position));
       holder.itemView.setOnClickListener(mOnClickListener);
+      holder.addMore.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          Items.addToCheckout(items.get(position));
+          setTotalValue();
+          simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+
+        }
+      });
+      holder.minusMore.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          Items.subtractFromCheckout(items.get(position));
+          setTotalValue();
+          simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+
+        }
+      });
+      holder.removeAll.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          Items.removeFromCheckout(items.get(position));
+          setTotalValue();
+          simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+
+        }
+      });
     }
 
     @Override
@@ -103,11 +127,17 @@ public class CheckoutDetailFragment extends Fragment {
     class ViewHolder extends RecyclerView.ViewHolder {
       final TextView detail;
       final TextView amount;
+      final ImageView addMore;
+      final ImageView minusMore;
+      final ImageView removeAll;
 
       ViewHolder(View view) {
         super(view);
         detail = view.findViewById(R.id.detail);
         amount = view.findViewById(R.id.amount);
+        addMore = view.findViewById(R.id.addMore);
+        minusMore = view.findViewById(R.id.minusMore);
+        removeAll = view.findViewById(R.id.removeAll);
       }
     }
   }

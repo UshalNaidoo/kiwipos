@@ -26,4 +26,36 @@
       android:layout_alignParentEnd="true"
       android:id="@+id/amount"/>
 
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_below="@+id/amount">
+
+    <ImageView
+        android:id="@+id/addMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_find_previous_holo_light"/>
+    <ImageView
+        android:id="@+id/minusMore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_find_next_holo_light"/>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:gravity="end">
+      <ImageView android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:src="@android:drawable/ic_menu_edit"/>
+      <ImageView
+          android:id="@+id/removeAll"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@android:drawable/ic_delete"
+      />
+    </LinearLayout>
+  </LinearLayout>
 </RelativeLayout>

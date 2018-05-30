@@ -47,4 +47,15 @@ public class Items {
       CHECKOUT_ITEMS.put(itemToAdd, CHECKOUT_ITEMS.get(itemToAdd)+1);
     }
   }
+  public static void subtractFromCheckout(Item itemToSubtract){
+    if (!(CHECKOUT_ITEMS.get(itemToSubtract)>1)) {
+      CHECKOUT_ITEMS.remove(itemToSubtract);
+    }
+    else {
+      CHECKOUT_ITEMS.put(itemToSubtract,CHECKOUT_ITEMS.get(itemToSubtract)-1);
+    }
+  }
+  public static void removeFromCheckout(Item itemToSubtract){
+    CHECKOUT_ITEMS.remove(itemToSubtract);
+  }
 }

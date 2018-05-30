@@ -1,11 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="match_parent"
               android:orientation="vertical">
 
   <TextView
-      android:id="@+id/total1"
+      android:id="@+id/total"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:gravity="center"
@@ -24,12 +24,4 @@
                                           tools:context="com.example.ushalnaidoo.kiwipos.ItemDetailFragment"
                                           tools:listitem="@layout/checkout_list_content"/>
 
-  <TextView
-      android:id="@+id/total"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:gravity="center"
-      android:textSize="32sp"
-      android:textStyle="bold"
-      android:background="@android:color/holo_orange_light" />
 </LinearLayout>
