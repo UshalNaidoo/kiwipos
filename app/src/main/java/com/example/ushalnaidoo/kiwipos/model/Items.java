@@ -1,14 +1,14 @@
 package com.example.ushalnaidoo.kiwipos.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Items {
 
   public static final List<Item> ITEMS = new ArrayList<>();
-  public static final Map<Item,Integer> CHECKOUT_ITEMS = new HashMap<>();
+  public static final Map<Item,Integer> CHECKOUT_ITEMS = new LinkedHashMap<>();
 
   public static void addItem(Item item) {
     ITEMS.add(item);
@@ -18,19 +18,26 @@ public class Items {
     ITEMS.addAll(items);
   }
 
-  public static Item createItem(String id, String name, String price) {
-    return new Item(id, name, price);
+  public static Item createItem(String id, String name, String price, Boolean hasSubItems) {
+    return new Item(id, name, price, hasSubItems);
   }
 
   public static class Item {
     public final String id;
     public final String itemName;
     public final String itemPrice;
+    public final Boolean hasSubItems;
+    public static final List<Item> subItems = new ArrayList<>();
 
-    Item(String id, String itemName, String itemPrice) {
+    Item(String id, String itemName, String itemPrice, Boolean hasSubItems) {
       this.id = id;
       this.itemName = itemName;
       this.itemPrice = itemPrice;
+      this.hasSubItems = hasSubItems;
+    }
+
+    public static void buildSubItems(Item subItem) {
+      subItems.add(subItem);
     }
 
     @Override
@@ -38,6 +45,7 @@ public class Items {
       return itemName;
     }
   }
+
 
   public static void addToCheckout(Item itemToAdd){
     if (!CHECKOUT_ITEMS.containsKey(itemToAdd)) {

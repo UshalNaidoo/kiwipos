@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +25,7 @@ public class CheckoutDetailFragment extends Fragment {
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
-      Bundle savedInstanceState) {
+                           Bundle savedInstanceState) {
     View rootView = inflater.inflate(R.layout.checkout_detail, container, false);
     totalText = rootView.findViewById(R.id.total);
     setTotalValue();
@@ -50,7 +53,7 @@ public class CheckoutDetailFragment extends Fragment {
   }
 
   public static class SimpleItemRecyclerViewAdapter
-      extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+          extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
     private final Map<Items.Item, Integer> mValues;
 
     private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter = this;
@@ -68,12 +71,12 @@ public class CheckoutDetailFragment extends Fragment {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
       View view = LayoutInflater.from(parent.getContext())
-                                .inflate(R.layout.checkout_list_content, parent, false);
+              .inflate(R.layout.checkout_list_content, parent, false);
       return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
       //Get fields to display
       final List<Items.Item> items = new ArrayList<>();
       List<String> itemNames = new ArrayList<>();
@@ -84,7 +87,7 @@ public class CheckoutDetailFragment extends Fragment {
         items.add(item);
         Integer amount = entry.getValue();
         itemNames.add(String.valueOf(amount) + "x " + item.itemName);
-        prices.add(String.valueOf(Double.valueOf(item.itemPrice)*amount));
+        prices.add(String.format("%.2f",Double.valueOf(item.itemPrice)*amount));
       }
 
       holder.detail.setText(itemNames.get(position));
@@ -93,7 +96,7 @@ public class CheckoutDetailFragment extends Fragment {
       holder.addMore.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          Items.addToCheckout(items.get(position));
+          Items.addToCheckout(items.get(holder.getAdapterPosition()));
           setTotalValue();
           simpleItemRecyclerViewAdapter.notifyDataSetChanged();
 
@@ -102,7 +105,7 @@ public class CheckoutDetailFragment extends Fragment {
       holder.minusMore.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          Items.subtractFromCheckout(items.get(position));
+          Items.subtractFromCheckout(items.get(holder.getAdapterPosition()));
           setTotalValue();
           simpleItemRecyclerViewAdapter.notifyDataSetChanged();
 
@@ -111,9 +114,24 @@ public class CheckoutDetailFragment extends Fragment {
       holder.removeAll.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          Items.removeFromCheckout(items.get(position));
-          setTotalValue();
-          simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+
+          new AlertDialog.Builder(view.getContext())
+                  .setTitle("Remove item from checkout?")
+                  .setMessage("Are you sure that you want to remove this item?")
+                  .setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                      Items.removeFromCheckout(items.get(holder.getAdapterPosition()));
+                      setTotalValue();
+                      simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+                    }
+                  })
+                  .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                  })
+                  .show();
 
         }
       });

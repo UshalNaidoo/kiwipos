@@ -1,16 +1,20 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.ushalnaidoo.kiwipos.model.Categories;
@@ -63,23 +67,57 @@ public class ItemDetailFragment extends Fragment {
     recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Items.ITEMS));
   }
 
-  public static class SimpleItemRecyclerViewAdapter
+  public class SimpleItemRecyclerViewAdapter
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
     private final ItemDetailFragment mParentActivity;
     private final List<Items.Item> mValues;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
-      public void onClick(View view) {
+      public void onClick(final View view) {
         Items.Item item = (Items.Item) view.getTag();
-        Items.addToCheckout(item);
-        Bundle arguments = new Bundle();
-        arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
-        CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
-        checkoutDetailFragment.setArguments(arguments);
-        mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.checkout_detail_container, checkoutDetailFragment)
-                .commit();
+        if (!item.hasSubItems) {
+          Items.addToCheckout(item);
+          Bundle arguments = new Bundle();
+          arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
+          CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+          checkoutDetailFragment.setArguments(arguments);
+          mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
+                  .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                  .commit();
+        } else {
+          AlertDialog.Builder builderSingle = new AlertDialog.Builder(view.getContext());
+          builderSingle.setIcon(R.drawable.ic_find_previous_holo_light);
+          builderSingle.setTitle("Select One Name:-");
+
+          final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<Items.Item>(view.getContext(), android.R.layout.select_dialog_singlechoice);
+          arrayAdapter.addAll(Items.Item.subItems);
+
+          builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              dialog.dismiss();
+            }
+          });
+
+          builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              String strName = arrayAdapter.getItem(which).itemName;
+              AlertDialog.Builder builderInner = new AlertDialog.Builder(view.getContext());
+              builderInner.setMessage(strName);
+              builderInner.setTitle("Your Selected Item is");
+              builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog,int which) {
+                  dialog.dismiss();
+                }
+              });
+              builderInner.show();
+            }
+          });
+          builderSingle.show();
+        }
       }
     };
 
@@ -97,8 +135,9 @@ public class ItemDetailFragment extends Fragment {
 
     @Override
     public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
+      holder.content.setBackgroundColor(mValues.get(position).hasSubItems ? getResources().getColor(android.R.color.holo_purple) : getResources().getColor(android.R.color.holo_green_light));
       holder.itemName.setText(mValues.get(position).itemName);
-      holder.price.setText(String.format("$%s", mValues.get(position).itemPrice));
+      holder.price.setText(String.format(mValues.get(position).hasSubItems ? "Click for more" : "$%s", mValues.get(position).itemPrice));
       holder.itemView.setTag(mValues.get(position));
       holder.itemView.setOnClickListener(mOnClickListener);
     }
@@ -111,11 +150,13 @@ public class ItemDetailFragment extends Fragment {
     class ViewHolder extends RecyclerView.ViewHolder {
       final TextView itemName;
       final TextView price;
+      final LinearLayout content;
 
       ViewHolder(View view) {
         super(view);
         itemName = view.findViewById(R.id.itemName);
         price = view.findViewById(R.id.price);
+        content =view.findViewById(R.id.content);
       }
     }
   }
@@ -140,7 +181,25 @@ public class ItemDetailFragment extends Fragment {
           if (jsonPosts != null) {
             for (int i = 0; i < jsonPosts.length(); i++) {
               JSONObject jsonObject = jsonPosts.getJSONObject(i);
-              Items.Item item = Items.createItem(jsonObject.getString("_id"), jsonObject.getString("name"), jsonObject.getString("price"));
+              Items.Item item = Items.createItem(jsonObject.getString("_id"),
+                      jsonObject.getString("name"),
+                      jsonObject.getString("price"),
+                      jsonObject.getBoolean("hasSubItems"));
+
+              if (item.hasSubItems) {
+                JSONObject json1 = new JSONObject(ConnectToServer.getSubItemsForItem(item.id));
+                JSONArray jsonPosts1 = json1.getJSONArray(ConnectToServer.SUB_ITEMS);
+                  if (jsonPosts1 != null) {
+                    for (int j = 0; j < jsonPosts1.length(); j++) {
+                      JSONObject jsonObject1 = jsonPosts1.getJSONObject(i);
+                      Items.Item item1 = Items.createItem(jsonObject1.getString("_id"),
+                              jsonObject.getString("name"),
+                              jsonObject.getString("price"), false);
+                       //ADD to SUB ITEM LIST
+                      Items.Item.buildSubItems(item1);
+                    }
+                  }
+              }
               Items.addItem(item);
               itemsForCache.add(item);
             }
