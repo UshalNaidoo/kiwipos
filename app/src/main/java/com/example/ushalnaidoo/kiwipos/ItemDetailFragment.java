@@ -77,23 +77,14 @@ public class ItemDetailFragment extends Fragment {
       public void onClick(final View view) {
         Items.Item item = (Items.Item) view.getTag();
         if (!item.hasSubItems) {
-          Items.addToCheckout(item);
-          Bundle arguments = new Bundle();
-          arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
-          CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
-          checkoutDetailFragment.setArguments(arguments);
-          mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
-                  .replace(R.id.checkout_detail_container, checkoutDetailFragment)
-                  .commit();
-        } else {
+          updateCheckout(item);
+        }
+        else {
           AlertDialog.Builder builderSingle = new AlertDialog.Builder(view.getContext());
-          builderSingle.setIcon(R.drawable.ic_find_previous_holo_light);
-          builderSingle.setTitle("Select One Name:-");
-
-          final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<Items.Item>(view.getContext(), android.R.layout.select_dialog_singlechoice);
+          final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.select_dialog_singlechoice);
           arrayAdapter.addAll(Items.Item.subItems);
 
-          builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+          builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
               dialog.dismiss();
@@ -103,23 +94,25 @@ public class ItemDetailFragment extends Fragment {
           builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-              String strName = arrayAdapter.getItem(which).itemName;
-              AlertDialog.Builder builderInner = new AlertDialog.Builder(view.getContext());
-              builderInner.setMessage(strName);
-              builderInner.setTitle("Your Selected Item is");
-              builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog,int which) {
-                  dialog.dismiss();
-                }
-              });
-              builderInner.show();
+              Items.Item item = arrayAdapter.getItem(which);
+              updateCheckout(item);
             }
           });
           builderSingle.show();
         }
       }
     };
+
+    private void updateCheckout(Items.Item item) {
+      Items.addToCheckout(item);
+      Bundle arguments = new Bundle();
+      arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
+      CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+      checkoutDetailFragment.setArguments(arguments);
+      mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
+              .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+              .commit();
+    }
 
     SimpleItemRecyclerViewAdapter(ItemDetailFragment parent, List<Items.Item> items) {
       mValues = items;
@@ -191,11 +184,11 @@ public class ItemDetailFragment extends Fragment {
                 JSONArray jsonPosts1 = json1.getJSONArray(ConnectToServer.SUB_ITEMS);
                   if (jsonPosts1 != null) {
                     for (int j = 0; j < jsonPosts1.length(); j++) {
-                      JSONObject jsonObject1 = jsonPosts1.getJSONObject(i);
+                      JSONObject jsonObject1 = jsonPosts1.getJSONObject(j);
                       Items.Item item1 = Items.createItem(jsonObject1.getString("_id"),
-                              jsonObject.getString("name"),
-                              jsonObject.getString("price"), false);
-                       //ADD to SUB ITEM LIST
+                              jsonObject1.getString("name"),
+                              jsonObject1.getString("price"),
+                              false);
                       Items.Item.buildSubItems(item1);
                     }
                   }
