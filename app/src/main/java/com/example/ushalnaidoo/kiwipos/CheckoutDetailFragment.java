@@ -90,7 +90,7 @@ public class CheckoutDetailFragment extends Fragment {
         prices.add(String.format("%.2f",Double.valueOf(item.itemPrice)*amount));
       }
 
-      holder.detail.setText(itemNames.get(position));
+      holder.detail.setText(itemNames.get(position) + '\n' + itemNames.get(position));
       holder.amount.setText(String.format("$%s", prices.get(position)));
       holder.itemView.setOnClickListener(mOnClickListener);
       holder.addMore.setOnClickListener(new View.OnClickListener() {

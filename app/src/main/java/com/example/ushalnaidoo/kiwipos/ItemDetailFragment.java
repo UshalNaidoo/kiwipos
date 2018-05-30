@@ -193,6 +193,19 @@ public class ItemDetailFragment extends Fragment {
                     }
                   }
               }
+//              //TODO Create Addon Objwect
+//              JSONObject json2 = new JSONObject(ConnectToServer.getAddonsForItem(item.id));
+//              JSONArray jsonPosts2 = json2.getJSONArray(ConnectToServer.SUB_ITEMS);
+//              if (jsonPosts2 != null) {
+//                for (int j = 0; j < jsonPosts2.length(); j++) {
+//                  JSONObject jsonObject2 = jsonPosts2.getJSONObject(j);
+//                  Items.Item item1 = Items.createItem(jsonObject2.getString("_id"),
+//                          jsonObject2.getString("name"),
+//                          jsonObject2.getString("price"),
+//                          false);
+//                  Items.Item.buildSubItems(item1);
+//                }
+//              }
               Items.addItem(item);
               itemsForCache.add(item);
             }

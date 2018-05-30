@@ -41,4 +41,15 @@ public class ConnectToServer {
     return null;
   }
 
+  public static String getAddonsForItem(String item_id) {
+    String parameters = "key=" + API_KEY + "&&itemid="+item_id;
+    String UrlString = ServerSettings.SERVER + ServerSettings.ADDONS_FOR_ITEM;
+    try {
+      return "{" + SUB_ITEMS + ":" + Connect.connectToServer(UrlString, parameters) + "}";
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving items", e);
+    }
+    return null;
+  }
+
 }

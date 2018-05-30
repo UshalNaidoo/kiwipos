@@ -7,5 +7,6 @@ public class ServerSettings {
   static String CATEGORIES = "/getCategories.php";
   static String ITEMS_FOR_CATEGORY = "/getItemsForCategory.php";
   static String SUB_ITEMS_FOR_ITEM = "/getSubItemForItem.php";
+  static String ADDONS_FOR_ITEM = "/getAddonsForItem.php";
 
 }
