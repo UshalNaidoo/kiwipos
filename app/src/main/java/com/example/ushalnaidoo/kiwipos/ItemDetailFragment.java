@@ -75,14 +75,24 @@ public class ItemDetailFragment extends Fragment {
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
       @Override
       public void onClick(final View view) {
-        Items.Item item = (Items.Item) view.getTag();
+        final Items.Item item = (Items.Item) view.getTag();
         if (!item.getSubItemsExist()) {
           Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item);
           updateCheckout(checkoutItem);
         }
         else {
           AlertDialog.Builder builderSingle = new AlertDialog.Builder(view.getContext());
-          final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.select_dialog_singlechoice);
+          final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<Items.Item>(view.getContext(), android.R.layout.select_dialog_singlechoice) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+              View view = super.getView(position, convertView, parent);
+              TextView text1 = view.findViewById(android.R.id.text1);
+              Items.Item subItem = item.getSubItems().get(position);
+              String label = subItem.getItemName() + " : $" + subItem.getItemPrice();
+              text1.setText(label);
+              return view;
+            }
+          };
           arrayAdapter.addAll(item.getSubItems());
 
           builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -93,6 +103,7 @@ public class ItemDetailFragment extends Fragment {
           });
 
           builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+
             @Override
             public void onClick(DialogInterface dialog, int which) {
               Items.Item item = arrayAdapter.getItem(which);
@@ -182,20 +193,6 @@ public class ItemDetailFragment extends Fragment {
                                                  jsonObject.getBoolean("hasSubItems"),
                                                  jsonObject.getBoolean("hasAddons"));
 
-              if (item.getSubItemsExist()) {
-                JSONObject json1 = new JSONObject(ConnectToServer.getSubItemsForItem(item.getId()));
-                JSONArray jsonPosts1 = json1.getJSONArray(ConnectToServer.SUB_ITEMS);
-                if (jsonPosts1 != null) {
-                  for (int j = 0; j < jsonPosts1.length(); j++) {
-                    JSONObject jsonObject1 = jsonPosts1.getJSONObject(j);
-                    Items.Item item1 = Items.createItem(jsonObject1.getString("_id"),
-                                                        jsonObject1.getString("name"),
-                                                        jsonObject1.getString("price"),
-                                                        false, false);
-                    item.buildSubItems(item1);
-                  }
-                }
-              }
               if (item.getAddonsExist()) {
                 JSONObject json2 = new JSONObject(ConnectToServer.getAddonsForItem(item.getId()));
                 JSONArray jsonPosts2 = json2.getJSONArray(ConnectToServer.ADDONS);
@@ -208,6 +205,24 @@ public class ItemDetailFragment extends Fragment {
                                                             jsonObject2.getString("type"),
                                                             jsonObject2.getString("amount"));
                     item.buildAddons(addon);
+                  }
+                }
+              }
+              if (item.getSubItemsExist()) {
+                JSONObject json1 = new JSONObject(ConnectToServer.getSubItemsForItem(item.getId()));
+                JSONArray jsonPosts1 = json1.getJSONArray(ConnectToServer.SUB_ITEMS);
+                if (jsonPosts1 != null) {
+                  for (int j = 0; j < jsonPosts1.length(); j++) {
+                    JSONObject jsonObject1 = jsonPosts1.getJSONObject(j);
+                    Items.Item subItem = Items.createItem(jsonObject1.getString("_id"),
+                                                        jsonObject1.getString("name"),
+                                                        jsonObject1.getString("price"),
+                                                        false, false);
+                    if (item.getAddonsExist()) {
+                      subItem.setAddonsExist(true);
+                      subItem.buildAllAddons(item.getAddons());
+                    }
+                    item.buildSubItems(subItem);
                   }
                 }
               }

@@ -3,6 +3,7 @@ package com.example.ushalnaidoo.kiwipos;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import android.content.DialogInterface;
@@ -23,7 +24,8 @@ import com.example.ushalnaidoo.kiwipos.model.Items;
 public class CheckoutDetailFragment extends Fragment {
   public CheckoutDetailFragment() {
   }
-  static TextView totalText;
+
+  private static TextView totalText;
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -41,12 +43,26 @@ public class CheckoutDetailFragment extends Fragment {
   private static void setTotalValue() {
     Double total = 0.0;
     for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
-      Items.Item item = entry.getKey();
+      Items.CheckoutItem item = entry.getKey();
       Integer value = entry.getValue();
-      total += Double.valueOf(item.getItemPrice())*value;
+
+      Double price = Double.valueOf(item.getItemPrice());
+      for (Addons.Addon addon : item.getAssignedAddons()) {
+        if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
+          if (!addon.getAdjustmentAmount().equals("0.00")) {
+            price = price + Double.valueOf(addon.getAdjustmentAmount());
+          }
+        }
+        else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
+          if (!addon.getAdjustmentAmount().equals("0.00")) {
+            price = price - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * price);
+          }
+        }
+      }
+      total += price * value;
     }
 
-    String totalString = "Total: $" +  String.format("%.2f", total);
+    String totalString = "Total: $" +  String.format(Locale.getDefault(),"%.2f", total);
     totalText.setText(totalString);
   }
 
@@ -59,12 +75,12 @@ public class CheckoutDetailFragment extends Fragment {
     private final Map<Items.CheckoutItem, Integer> mValues;
 
     private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter = this;
-    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Items.CheckoutItem item = (Items.CheckoutItem) view.getTag();
-      }
-    };
+//    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+//      @Override
+//      public void onClick(View view) {
+//        Items.CheckoutItem item = (Items.CheckoutItem) view.getTag();
+//      }
+//    };
 
     SimpleItemRecyclerViewAdapter(Map<Items.CheckoutItem, Integer> checkouts) {
       mValues = checkouts;
@@ -92,24 +108,31 @@ public class CheckoutDetailFragment extends Fragment {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(item.getItemName());
         Double price = Double.valueOf(item.getItemPrice());
+        Double priceForCalculations = Double.valueOf(item.getItemPrice());
         for (Addons.Addon addon : item.getAssignedAddons()) {
           stringBuilder.append('\n' + " - ").append(addon.getAddonName());
           if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
-            price = price - Double.valueOf(addon.getAdjustmentAmount());
+            if (!addon.getAdjustmentAmount().equals("0.00")) {
+              priceForCalculations = priceForCalculations + Double.valueOf(addon.getAdjustmentAmount());
+              stringBuilder.append(": + $").append(addon.getAdjustmentAmount());
+            }
           }
           else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
-            price = price - (Double.valueOf(addon.getAdjustmentAmount())/100 * price);
+            if (!addon.getAdjustmentAmount().equals("0.00")) {
+              stringBuilder.append(": - $").append(String.format(Locale.getDefault(),"%.2f", Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations));
+              priceForCalculations = priceForCalculations - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations);
+            }
           }
         }
 
         items.add(item);
         itemNames.add(String.valueOf(amount) + "x " + stringBuilder.toString());
-        prices.add(String.format("%.2f",price*amount));
+        prices.add(String.format(Locale.getDefault(),"%.2f",price*amount));
       }
 
       holder.detail.setText(itemNames.get(position));
       holder.amount.setText(String.format("$%s", prices.get(position)));
-      holder.itemView.setOnClickListener(mOnClickListener);
+//      holder.itemView.setOnClickListener(mOnClickListener);
       holder.addMore.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -172,6 +195,7 @@ public class CheckoutDetailFragment extends Fragment {
             public void onClick(DialogInterface dialog, int which) {
               Addons.Addon addon = arrayAdapter.getItem(which);
               items.get(holder.getAdapterPosition()).buildAssignedAddons(addon);
+              setTotalValue();
               simpleItemRecyclerViewAdapter.notifyDataSetChanged();
             }
           });

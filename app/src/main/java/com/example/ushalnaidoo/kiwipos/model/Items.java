@@ -82,6 +82,10 @@ public class Items {
       this.addons.add(addon);
     }
 
+    public void buildAllAddons(List<Addons.Addon> addons) {
+      this.addons.addAll(addons);
+    }
+
     public List<Addons.Addon> getAddons() {
       return this.addons;
     }
@@ -140,6 +144,9 @@ public class Items {
     }
     public CheckoutItem(Item item) {
       super(item.id, item.itemName, item.itemPrice, item.subItemsExist, item.addonsExist);
+      if (item.addonsExist) {
+        this.buildAllAddons(item.getAddons());
+      }
     }
 
     public void buildAssignedAddons(Addons.Addon addon) {
