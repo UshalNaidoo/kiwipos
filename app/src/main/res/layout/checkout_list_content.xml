@@ -47,9 +47,11 @@
                   android:layout_height="wrap_content"
                   android:orientation="horizontal"
                   android:gravity="end">
-      <ImageView android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:src="@android:drawable/ic_menu_edit"/>
+      <ImageView
+          android:id="@+id/editItem"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@android:drawable/ic_menu_edit"/>
       <ImageView
           android:id="@+id/removeAll"
           android:layout_width="wrap_content"

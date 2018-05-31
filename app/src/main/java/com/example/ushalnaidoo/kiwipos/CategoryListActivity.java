@@ -1,8 +1,6 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -40,7 +38,7 @@ public class CategoryListActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_item_list);
 
-    Categories.CATEGORIES.clear();
+    Categories.getCategories().clear();
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
     toolbar.setTitle(getTitle());
@@ -60,7 +58,7 @@ public class CategoryListActivity extends AppCompatActivity {
   }
 
   private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Categories.CATEGORIES));
+    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Categories.getCategories()));
   }
 
   public static class SimpleItemRecyclerViewAdapter
@@ -74,7 +72,7 @@ public class CategoryListActivity extends AppCompatActivity {
       public void onClick(View view) {
         Categories.Category category = (Categories.Category) view.getTag();
           Bundle arguments = new Bundle();
-          arguments.putString(ItemDetailFragment.CATEGORY_ID, category.id);
+          arguments.putString(ItemDetailFragment.CATEGORY_ID, category.getId());
           ItemDetailFragment fragment = new ItemDetailFragment();
           fragment.setArguments(arguments);
           mParentActivity.getSupportFragmentManager().beginTransaction()
@@ -98,7 +96,7 @@ public class CategoryListActivity extends AppCompatActivity {
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-      holder.categoryName.setText(categories.get(position).categoryName);
+      holder.categoryName.setText(categories.get(position).getCategoryName());
       holder.itemView.setTag(categories.get(position));
       holder.itemView.setOnClickListener(mOnClickListener);
     }
@@ -138,7 +136,6 @@ public class CategoryListActivity extends AppCompatActivity {
       try {
         json = new JSONObject(result);
         jsonPosts = json.getJSONArray(ConnectToServer.CATEGORIES);
-
         if (jsonPosts != null) {
           for (int i = 0; i < jsonPosts.length(); i++) {
             JSONObject jsonObject = jsonPosts.getJSONObject(i);

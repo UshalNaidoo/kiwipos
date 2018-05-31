@@ -7,6 +7,7 @@ public class ConnectToServer {
   public static final String CATEGORIES = "categories";
   public static final String ITEMS = "items";
   public static final String SUB_ITEMS = "subitems";
+  public static final String ADDONS = "addons";
 
   public static String getCategories() {
     String parameters = "key=" + API_KEY;
@@ -45,7 +46,7 @@ public class ConnectToServer {
     String parameters = "key=" + API_KEY + "&&itemid="+item_id;
     String UrlString = ServerSettings.SERVER + ServerSettings.ADDONS_FOR_ITEM;
     try {
-      return "{" + SUB_ITEMS + ":" + Connect.connectToServer(UrlString, parameters) + "}";
+      return "{" + ADDONS + ":" + Connect.connectToServer(UrlString, parameters) + "}";
     } catch (Exception e) {
       Log.e("KiwiPos", "Error when retrieving items", e);
     }

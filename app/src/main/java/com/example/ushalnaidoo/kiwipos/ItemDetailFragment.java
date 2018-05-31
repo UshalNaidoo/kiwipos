@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
@@ -40,7 +41,7 @@ public class ItemDetailFragment extends Fragment {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (getArguments().containsKey(CATEGORY_ID)) {
-      mItem = Categories.HASH_MAP.get(getArguments().getString(CATEGORY_ID));
+      mItem = Categories.getHashMap().get(getArguments().getString(CATEGORY_ID));
     }
   }
 
@@ -50,8 +51,7 @@ public class ItemDetailFragment extends Fragment {
     View rootView = inflater.inflate(R.layout.item_detail, container, false);
 
     if (mItem != null) {
-      ((TextView) rootView.findViewById(R.id.tvTitle)).setText(mItem.categoryName);
-
+      ((TextView) rootView.findViewById(R.id.category_header)).setText(mItem.getCategoryName());
       RecyclerView recyclerView =  rootView.findViewById(R.id.item_list);
       assert recyclerView != null;
       RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
@@ -76,13 +76,14 @@ public class ItemDetailFragment extends Fragment {
       @Override
       public void onClick(final View view) {
         Items.Item item = (Items.Item) view.getTag();
-        if (!item.hasSubItems) {
-          updateCheckout(item);
+        if (!item.getSubItemsExist()) {
+          Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item);
+          updateCheckout(checkoutItem);
         }
         else {
           AlertDialog.Builder builderSingle = new AlertDialog.Builder(view.getContext());
           final ArrayAdapter<Items.Item> arrayAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.select_dialog_singlechoice);
-          arrayAdapter.addAll(Items.Item.subItems);
+          arrayAdapter.addAll(item.getSubItems());
 
           builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -95,7 +96,8 @@ public class ItemDetailFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
               Items.Item item = arrayAdapter.getItem(which);
-              updateCheckout(item);
+              Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item);
+              updateCheckout(checkoutItem);
             }
           });
           builderSingle.show();
@@ -103,15 +105,15 @@ public class ItemDetailFragment extends Fragment {
       }
     };
 
-    private void updateCheckout(Items.Item item) {
+    private void updateCheckout(Items.CheckoutItem item) {
       Items.addToCheckout(item);
       Bundle arguments = new Bundle();
-      arguments.putString(ItemDetailFragment.CATEGORY_ID, item.id);
+      arguments.putString(ItemDetailFragment.CATEGORY_ID, item.getId());
       CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
       checkoutDetailFragment.setArguments(arguments);
       mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
-              .replace(R.id.checkout_detail_container, checkoutDetailFragment)
-              .commit();
+                     .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                     .commit();
     }
 
     SimpleItemRecyclerViewAdapter(ItemDetailFragment parent, List<Items.Item> items) {
@@ -128,9 +130,9 @@ public class ItemDetailFragment extends Fragment {
 
     @Override
     public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
-      holder.content.setBackgroundColor(mValues.get(position).hasSubItems ? getResources().getColor(android.R.color.holo_purple) : getResources().getColor(android.R.color.holo_green_light));
-      holder.itemName.setText(mValues.get(position).itemName);
-      holder.price.setText(String.format(mValues.get(position).hasSubItems ? "Click for more" : "$%s", mValues.get(position).itemPrice));
+      holder.content.setBackgroundColor(mValues.get(position).getSubItemsExist() ? getResources().getColor(android.R.color.holo_purple) : getResources().getColor(android.R.color.holo_green_light));
+      holder.itemName.setText(mValues.get(position).getItemName());
+      holder.price.setText(String.format(mValues.get(position).getSubItemsExist() ? "Click for more" : "$%s", mValues.get(position).getItemPrice()));
       holder.itemView.setTag(mValues.get(position));
       holder.itemView.setOnClickListener(mOnClickListener);
     }
@@ -169,43 +171,46 @@ public class ItemDetailFragment extends Fragment {
       List<Items.Item> itemsForCache = new ArrayList<>();
       if(Categories.readFromCache(mItem) == null) {
         try {
-          json = new JSONObject(ConnectToServer.getItemsForCategory(mItem.id));
+          json = new JSONObject(ConnectToServer.getItemsForCategory(mItem.getId()));
           jsonPosts = json.getJSONArray(ConnectToServer.ITEMS);
           if (jsonPosts != null) {
             for (int i = 0; i < jsonPosts.length(); i++) {
               JSONObject jsonObject = jsonPosts.getJSONObject(i);
               Items.Item item = Items.createItem(jsonObject.getString("_id"),
-                      jsonObject.getString("name"),
-                      jsonObject.getString("price"),
-                      jsonObject.getBoolean("hasSubItems"));
+                                                 jsonObject.getString("name"),
+                                                 jsonObject.getString("price"),
+                                                 jsonObject.getBoolean("hasSubItems"),
+                                                 jsonObject.getBoolean("hasAddons"));
 
-              if (item.hasSubItems) {
-                JSONObject json1 = new JSONObject(ConnectToServer.getSubItemsForItem(item.id));
+              if (item.getSubItemsExist()) {
+                JSONObject json1 = new JSONObject(ConnectToServer.getSubItemsForItem(item.getId()));
                 JSONArray jsonPosts1 = json1.getJSONArray(ConnectToServer.SUB_ITEMS);
-                  if (jsonPosts1 != null) {
-                    for (int j = 0; j < jsonPosts1.length(); j++) {
-                      JSONObject jsonObject1 = jsonPosts1.getJSONObject(j);
-                      Items.Item item1 = Items.createItem(jsonObject1.getString("_id"),
-                              jsonObject1.getString("name"),
-                              jsonObject1.getString("price"),
-                              false);
-                      Items.Item.buildSubItems(item1);
-                    }
+                if (jsonPosts1 != null) {
+                  for (int j = 0; j < jsonPosts1.length(); j++) {
+                    JSONObject jsonObject1 = jsonPosts1.getJSONObject(j);
+                    Items.Item item1 = Items.createItem(jsonObject1.getString("_id"),
+                                                        jsonObject1.getString("name"),
+                                                        jsonObject1.getString("price"),
+                                                        false, false);
+                    item.buildSubItems(item1);
                   }
+                }
               }
-//              //TODO Create Addon Objwect
-//              JSONObject json2 = new JSONObject(ConnectToServer.getAddonsForItem(item.id));
-//              JSONArray jsonPosts2 = json2.getJSONArray(ConnectToServer.SUB_ITEMS);
-//              if (jsonPosts2 != null) {
-//                for (int j = 0; j < jsonPosts2.length(); j++) {
-//                  JSONObject jsonObject2 = jsonPosts2.getJSONObject(j);
-//                  Items.Item item1 = Items.createItem(jsonObject2.getString("_id"),
-//                          jsonObject2.getString("name"),
-//                          jsonObject2.getString("price"),
-//                          false);
-//                  Items.Item.buildSubItems(item1);
-//                }
-//              }
+              if (item.getAddonsExist()) {
+                JSONObject json2 = new JSONObject(ConnectToServer.getAddonsForItem(item.getId()));
+                JSONArray jsonPosts2 = json2.getJSONArray(ConnectToServer.ADDONS);
+                if (jsonPosts2 != null) {
+                  for (int j = 0; j < jsonPosts2.length(); j++) {
+                    JSONObject jsonObject2 = jsonPosts2.getJSONObject(j);
+                    Addons.Addon addon = Addons.createAddon(jsonObject2.getString("_id"),
+                                                            jsonObject2.getString("item_id"),
+                                                            jsonObject2.getString("name"),
+                                                            jsonObject2.getString("type"),
+                                                            jsonObject2.getString("amount"));
+                    item.buildAddons(addon);
+                  }
+                }
+              }
               Items.addItem(item);
               itemsForCache.add(item);
             }
