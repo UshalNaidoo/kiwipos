@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -120,6 +121,12 @@ public class CheckoutDetailFragment extends Fragment {
         prices.add(String.format(Locale.getDefault(),"%.2f",price*amount));
       }
 
+      holder.itemView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          showAddons(view.getContext(), items.get(holder.getAdapterPosition()));
+        }
+      });
       holder.detail.setText(itemNames.get(position));
       holder.amount.setText(String.format("$%s", prices.get(position)));
       holder.addMore.setOnClickListener(new View.OnClickListener() {
@@ -167,44 +174,47 @@ public class CheckoutDetailFragment extends Fragment {
       holder.editItem.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          AlertDialog.Builder alertBuilder = new AlertDialog.Builder(view.getContext());
-          Collections.sort(items.get(holder.getAdapterPosition()).getAddons());
-          final List<Addons.Addon> possibleAddons = items.get(holder.getAdapterPosition()).getAddons();
-          final List<Addons.Addon> selectedAddons = items.get(holder.getAdapterPosition()).getAssignedAddons();
-          String[] possibleAddonsStringArr = new String[possibleAddons.size()];
-          final boolean[] selectedItems = new boolean[possibleAddons.size()];
-          for(int i = 0; i < possibleAddonsStringArr.length ; i++){
-            possibleAddonsStringArr[i] = possibleAddons.get(i).getAddonName();
-            selectedItems[i] = false;
-            for(int j = 0 ; j < selectedAddons.size() ; j++){
-              if(selectedAddons.get(j).getId() == possibleAddons.get(i).getId()){
-                selectedItems[i] = true;
-                break;
-              }
-            }
-          }
-
-
-          alertBuilder.setMultiChoiceItems(possibleAddonsStringArr, selectedItems, new DialogInterface.OnMultiChoiceClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-            }
-          }).setPositiveButton("OK",new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int ii) {
-              for(int i = 0 ; i < selectedItems.length ; i++) {
-                if (selectedItems[i]) {
-                  items.get(holder.getAdapterPosition()).buildAssignedAddons(possibleAddons.get(i));
-                } else {
-                  items.get(holder.getAdapterPosition()).removeAssignedAddons(possibleAddons.get(i));
-                }
-              }
-              setTotalValue();
-              simpleItemRecyclerViewAdapter.notifyDataSetChanged();
-            }
-          }).setCancelable(false).create().show();
+          showAddons(view.getContext(), items.get(holder.getAdapterPosition()));
         }
       });
+    }
+
+    private void showAddons(Context context, final Items.CheckoutItem item) {
+      AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
+      Collections.sort(item.getAddons());
+      final List<Addons.Addon> possibleAddons = item.getAddons();
+      final List<Addons.Addon> selectedAddons = item.getAssignedAddons();
+      String[] possibleAddonsStringArr = new String[possibleAddons.size()];
+      final boolean[] selectedItems = new boolean[possibleAddons.size()];
+      for(int i = 0; i < possibleAddonsStringArr.length ; i++){
+        possibleAddonsStringArr[i] = possibleAddons.get(i).getAddonName();
+        selectedItems[i] = false;
+        for(int j = 0 ; j < selectedAddons.size() ; j++){
+          if(selectedAddons.get(j).getId().equals(possibleAddons.get(i).getId())) {
+            selectedItems[i] = true;
+            break;
+          }
+        }
+      }
+
+      alertBuilder.setMultiChoiceItems(possibleAddonsStringArr, selectedItems, new DialogInterface.OnMultiChoiceClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+        }
+      }).setPositiveButton("OK",new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int ii) {
+          for(int i = 0 ; i < selectedItems.length ; i++) {
+            if (selectedItems[i]) {
+              item.buildAssignedAddons(possibleAddons.get(i));
+            } else {
+              item.removeAssignedAddons(possibleAddons.get(i));
+            }
+          }
+          setTotalValue();
+          simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+        }
+      }).setCancelable(false).create().show();
     }
 
     @Override
