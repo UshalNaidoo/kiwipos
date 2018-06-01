@@ -150,8 +150,11 @@ public class Items {
     }
 
     public void buildAssignedAddons(Addons.Addon addon) {
-      this.assignedAddons.add(addon);
+      if (!this.assignedAddons.contains(addon)) {
+        this.assignedAddons.add(addon);
+      }
     }
+
     public void removeAssignedAddons(Addons.Addon addon) {
       this.assignedAddons.remove(addon);
     }

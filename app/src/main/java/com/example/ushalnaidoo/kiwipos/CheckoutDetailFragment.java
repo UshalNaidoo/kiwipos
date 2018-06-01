@@ -15,7 +15,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.example.ushalnaidoo.kiwipos.model.Addons;
@@ -73,14 +72,7 @@ public class CheckoutDetailFragment extends Fragment {
   public static class SimpleItemRecyclerViewAdapter
           extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
     private final Map<Items.CheckoutItem, Integer> mValues;
-
     private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter = this;
-//    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-//      @Override
-//      public void onClick(View view) {
-//        Items.CheckoutItem item = (Items.CheckoutItem) view.getTag();
-//      }
-//    };
 
     SimpleItemRecyclerViewAdapter(Map<Items.CheckoutItem, Integer> checkouts) {
       mValues = checkouts;
@@ -95,7 +87,6 @@ public class CheckoutDetailFragment extends Fragment {
 
     @Override
     public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
-      //Get fields to display
       final List<Items.CheckoutItem> items = new ArrayList<>();
       List<String> itemNames = new ArrayList<>();
       List<String> prices = new ArrayList<>();
@@ -103,7 +94,6 @@ public class CheckoutDetailFragment extends Fragment {
       for (Map.Entry<Items.CheckoutItem, Integer> entry : mValues.entrySet()) {
         Items.CheckoutItem item = entry.getKey();
         Integer amount = entry.getValue();
-        // Loop through assigned addons and adjust the price and name of the checkout item
         Collections.sort(item.getAssignedAddons());
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(item.getItemName());
@@ -132,7 +122,6 @@ public class CheckoutDetailFragment extends Fragment {
 
       holder.detail.setText(itemNames.get(position));
       holder.amount.setText(String.format("$%s", prices.get(position)));
-//      holder.itemView.setOnClickListener(mOnClickListener);
       holder.addMore.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -178,28 +167,42 @@ public class CheckoutDetailFragment extends Fragment {
       holder.editItem.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-          AlertDialog.Builder builderSingle = new AlertDialog.Builder(view.getContext());
-          final ArrayAdapter<Addons.Addon> arrayAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.select_dialog_singlechoice);
+          AlertDialog.Builder alertBuilder = new AlertDialog.Builder(view.getContext());
           Collections.sort(items.get(holder.getAdapterPosition()).getAddons());
-          arrayAdapter.addAll(items.get(holder.getAdapterPosition()).getAddons());
-
-          builderSingle.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-              dialog.dismiss();
+          final List<Addons.Addon> possibleAddons = items.get(holder.getAdapterPosition()).getAddons();
+          final List<Addons.Addon> selectedAddons = items.get(holder.getAdapterPosition()).getAssignedAddons();
+          String[] possibleAddonsStringArr = new String[possibleAddons.size()];
+          final boolean[] selectedItems = new boolean[possibleAddons.size()];
+          for(int i = 0; i < possibleAddonsStringArr.length ; i++){
+            possibleAddonsStringArr[i] = possibleAddons.get(i).getAddonName();
+            selectedItems[i] = false;
+            for(int j = 0 ; j < selectedAddons.size() ; j++){
+              if(selectedAddons.get(j).getId() == possibleAddons.get(i).getId()){
+                selectedItems[i] = true;
+                break;
+              }
             }
-          });
+          }
 
-          builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+
+          alertBuilder.setMultiChoiceItems(possibleAddonsStringArr, selectedItems, new DialogInterface.OnMultiChoiceClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-              Addons.Addon addon = arrayAdapter.getItem(which);
-              items.get(holder.getAdapterPosition()).buildAssignedAddons(addon);
+            public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+            }
+          }).setPositiveButton("OK",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int ii) {
+              for(int i = 0 ; i < selectedItems.length ; i++) {
+                if (selectedItems[i]) {
+                  items.get(holder.getAdapterPosition()).buildAssignedAddons(possibleAddons.get(i));
+                } else {
+                  items.get(holder.getAdapterPosition()).removeAssignedAddons(possibleAddons.get(i));
+                }
+              }
               setTotalValue();
               simpleItemRecyclerViewAdapter.notifyDataSetChanged();
             }
-          });
-          builderSingle.show();
+          }).setCancelable(false).create().show();
         }
       });
     }
