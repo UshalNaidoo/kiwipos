@@ -1,11 +1,5 @@
 package com.example.ushalnaidoo.kiwipos;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -18,8 +12,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Items;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class CheckoutDetailFragment extends Fragment {
   public CheckoutDetailFragment() {
@@ -96,21 +97,21 @@ public class CheckoutDetailFragment extends Fragment {
         Items.CheckoutItem item = entry.getKey();
         Integer amount = entry.getValue();
         Collections.sort(item.getAssignedAddons());
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(item.getItemName());
+        StringBuilder stringBuilder = new StringBuilder(item.getItemName());
         Double price = Double.valueOf(item.getItemPrice());
+        StringBuilder priceBuilder = new StringBuilder(String.format(Locale.getDefault(),"%.2f",price*amount));
         Double priceForCalculations = Double.valueOf(item.getItemPrice());
         for (Addons.Addon addon : item.getAssignedAddons()) {
           stringBuilder.append('\n' + " - ").append(addon.getAddonName());
           if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
             if (!addon.getAdjustmentAmount().equals("0.00")) {
               priceForCalculations = priceForCalculations + Double.valueOf(addon.getAdjustmentAmount());
-              stringBuilder.append(": + $").append(addon.getAdjustmentAmount());
+              priceBuilder.append('\n' + "$").append(String.format(Locale.getDefault(),"%.2f",Double.valueOf(addon.getAdjustmentAmount()) * amount));
             }
           }
           else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
             if (!addon.getAdjustmentAmount().equals("0.00")) {
-              stringBuilder.append(": - $").append(String.format(Locale.getDefault(),"%.2f", Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations));
+              priceBuilder.append('\n' + "- $").append(String.format(Locale.getDefault(),"%.2f", Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations*amount));
               priceForCalculations = priceForCalculations - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations);
             }
           }
@@ -118,7 +119,7 @@ public class CheckoutDetailFragment extends Fragment {
 
         items.add(item);
         itemNames.add(String.valueOf(amount) + "x " + stringBuilder.toString());
-        prices.add(String.format(Locale.getDefault(),"%.2f",price*amount));
+        prices.add(priceBuilder.toString());
       }
 
       holder.itemView.setOnClickListener(new View.OnClickListener() {
