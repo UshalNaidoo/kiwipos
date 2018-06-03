@@ -42,28 +42,9 @@ public class CheckoutDetailFragment extends Fragment {
   }
 
   private static void setTotalValue() {
-    Double total = 0.0;
-    for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
-      Items.CheckoutItem item = entry.getKey();
-      Integer value = entry.getValue();
 
-      Double price = Double.valueOf(item.getItemPrice());
-      for (Addons.Addon addon : item.getAssignedAddons()) {
-        if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
-          if (!addon.getAdjustmentAmount().equals("0.00")) {
-            price = price + Double.valueOf(addon.getAdjustmentAmount());
-          }
-        }
-        else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
-          if (!addon.getAdjustmentAmount().equals("0.00")) {
-            price = price - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * price);
-          }
-        }
-      }
-      total += price * value;
-    }
 
-    String totalString = "Total: $" +  String.format(Locale.getDefault(),"%.2f", total);
+    String totalString = "Total: $" +  String.format(Locale.getDefault(),"%.2f", Items.getCheckoutTotal());
     totalText.setText(totalString);
   }
 

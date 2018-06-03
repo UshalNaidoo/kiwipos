@@ -49,8 +49,33 @@ public class Items {
       CHECKOUT_ITEMS.put(itemToSubtract,CHECKOUT_ITEMS.get(itemToSubtract)-1);
     }
   }
-  public static void removeFromCheckout(Item itemToSubtract){
+
+  public static void removeFromCheckout(Item itemToSubtract) {
     CHECKOUT_ITEMS.remove(itemToSubtract);
+  }
+
+  public static Double getCheckoutTotal() {
+    Double total = 0.0;
+    for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
+      Items.CheckoutItem item = entry.getKey();
+      Integer value = entry.getValue();
+
+      Double price = Double.valueOf(item.getItemPrice());
+      for (Addons.Addon addon : item.getAssignedAddons()) {
+        if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
+          if (!addon.getAdjustmentAmount().equals("0.00")) {
+            price = price + Double.valueOf(addon.getAdjustmentAmount());
+          }
+        }
+        else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
+          if (!addon.getAdjustmentAmount().equals("0.00")) {
+            price = price - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * price);
+          }
+        }
+      }
+      total += price * value;
+    }
+    return total;
   }
 
   public static class Item {
