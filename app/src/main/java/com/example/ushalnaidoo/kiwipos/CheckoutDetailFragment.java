@@ -42,8 +42,6 @@ public class CheckoutDetailFragment extends Fragment {
   }
 
   private static void setTotalValue() {
-
-
     String totalString = "Total: $" +  String.format(Locale.getDefault(),"%.2f", Items.getCheckoutTotal());
     totalText.setText(totalString);
   }

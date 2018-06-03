@@ -54,6 +54,10 @@ public class Items {
     CHECKOUT_ITEMS.remove(itemToSubtract);
   }
 
+  public static void clearCheckout() {
+    CHECKOUT_ITEMS.clear();
+  }
+
   public static Double getCheckoutTotal() {
     Double total = 0.0;
     for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
