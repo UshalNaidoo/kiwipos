@@ -1,6 +1,7 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -48,11 +49,15 @@ public class CategoryListActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+        final CategoryListActivity activity = this;
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
+                if (Items.CHECKOUT_ITEMS.size() == 0 ) {
+                    return;
+                }
                 final Dialog dialog = new Dialog(view.getContext());
                 dialog.setContentView(R.layout.dialog_tender);
                 Button dialogButtonHaveHere = dialog.findViewById(R.id.dialogButtonHaveHere);
@@ -61,6 +66,9 @@ public class CategoryListActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Double cash =  Double.valueOf(customerCash.getText().toString());
+                        if (cash - Items.getCheckoutTotal() < 0) {
+                            return;
+                        }
                         dialog.dismiss();
                         final Dialog dialog1 = new Dialog(v.getContext());
                         dialog1.setContentView(R.layout.dialog_tender_complete);
@@ -73,7 +81,10 @@ public class CategoryListActivity extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 Items.clearCheckout();
-                                SimpleItemRecyclerViewAdapter.notifyDataSetChanged();
+                                CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+                                activity.getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                                        .commit();
                                 dialog1.dismiss();
                             }
                         });
