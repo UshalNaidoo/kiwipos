@@ -24,6 +24,7 @@
       android:textStyle="bold"
       android:layout_alignParentRight="true"
       android:layout_alignParentEnd="true"
+      android:gravity="right"
       android:id="@+id/amount"/>
 
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

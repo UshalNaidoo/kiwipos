@@ -103,17 +103,17 @@ public class CheckoutDetailFragment extends Fragment {
         Double priceForCalculations = Double.valueOf(item.getItemPrice());
         for (Addons.Addon addon : item.getAssignedAddons()) {
           stringBuilder.append('\n' + " - ").append(addon.getAddonName());
-          if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
-            if (!addon.getAdjustmentAmount().equals("0.00")) {
+          if (!addon.getAdjustmentAmount().equals("0.00")) {
+            if (Addons.AddonType.ACTUAL.equals(addon.getAddonType())) {
               priceForCalculations = priceForCalculations + Double.valueOf(addon.getAdjustmentAmount());
-              priceBuilder.append('\n' + "$").append(String.format(Locale.getDefault(),"%.2f",Double.valueOf(addon.getAdjustmentAmount()) * amount));
-            }
-          }
-          else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
-            if (!addon.getAdjustmentAmount().equals("0.00")) {
-              priceBuilder.append('\n' + "- $").append(String.format(Locale.getDefault(),"%.2f", Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations*amount));
+              priceBuilder.append('\n' + "$").append(String.format(Locale.getDefault(), "%.2f", Double.valueOf(addon.getAdjustmentAmount()) * amount));
+            } else if (Addons.AddonType.PERCENTAGE.equals(addon.getAddonType())) {
+              priceBuilder.append('\n' + "- $").append(String.format(Locale.getDefault(), "%.2f", Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations * amount));
               priceForCalculations = priceForCalculations - (Double.valueOf(addon.getAdjustmentAmount()) / 100 * priceForCalculations);
             }
+          }
+          else {
+            priceBuilder.append('\n');
           }
         }
 
