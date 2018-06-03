@@ -1,22 +1,25 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,9 +50,27 @@ public class CategoryListActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action111", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-      }
+
+          // custom dialog
+          final Dialog dialog = new Dialog(view.getContext());
+          dialog.setContentView(R.layout.dialog_tender);
+          dialog.setTitle("Title...");
+          TextView text = (TextView) dialog.findViewById(R.id.text);
+          text.setText("Android custom dialog example!");
+          ImageView image = (ImageView) dialog.findViewById(R.id.image);
+          image.setImageResource(R.drawable.ic_find_next_holo_light);
+
+          Button dialogButton = dialog.findViewById(R.id.dialogButtonOK);
+          dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+              dialog.dismiss();
+            }
+          });
+
+          dialog.show();
+        }
+
     });
 
     View recyclerView = findViewById(R.id.item_list);
