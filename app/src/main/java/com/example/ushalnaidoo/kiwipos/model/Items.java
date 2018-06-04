@@ -168,14 +168,16 @@ public class Items {
   public static class CheckoutItem extends Item {
     private List<Addons.Addon> assignedAddons = new ArrayList<>();
 
+    private boolean isSubType;
     CheckoutItem(String id, String itemName, String itemPrice, Boolean subItemsExist, Boolean addonsExist) {
       super(id, itemName, itemPrice, subItemsExist, addonsExist);
     }
-    public CheckoutItem(Item item) {
+    public CheckoutItem(Item item, boolean isSubType) {
       super(item.id, item.itemName, item.itemPrice, item.subItemsExist, item.addonsExist);
       if (item.addonsExist) {
         this.buildAllAddons(item.getAddons());
       }
+      this.isSubType = isSubType;
     }
 
     public void buildAssignedAddons(Addons.Addon addon) {
@@ -190,6 +192,10 @@ public class Items {
 
     public List<Addons.Addon> getAssignedAddons() {
       return this.assignedAddons;
+    }
+
+    public Boolean isSubType() {
+      return isSubType;
     }
 
   }

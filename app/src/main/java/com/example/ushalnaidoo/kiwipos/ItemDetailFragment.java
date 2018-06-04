@@ -77,7 +77,7 @@ public class ItemDetailFragment extends Fragment {
       public void onClick(final View view) {
         final Items.Item item = (Items.Item) view.getTag();
         if (!item.getSubItemsExist()) {
-          Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item);
+          Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item, false);
           updateCheckout(checkoutItem);
         }
         else {
@@ -107,7 +107,7 @@ public class ItemDetailFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
               Items.Item item = arrayAdapter.getItem(which);
-              Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item);
+              Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item, true);
               updateCheckout(checkoutItem);
             }
           });

@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
@@ -29,6 +30,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * An activity representing a list of Items. This activity
@@ -60,35 +62,13 @@ public class CategoryListActivity extends AppCompatActivity {
                 }
                 final Dialog dialog = new Dialog(view.getContext());
                 dialog.setContentView(R.layout.dialog_tender);
-                Button dialogButtonHaveHere = dialog.findViewById(R.id.dialogButtonHaveHere);
                 final EditText customerCash = dialog.findViewById(R.id.customerCash);
+                final EditText notes = dialog.findViewById(R.id.notes);
+                Button dialogButtonHaveHere = dialog.findViewById(R.id.dialogButtonHaveHere);
                 dialogButtonHaveHere.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Double cash =  Double.valueOf(customerCash.getText().toString());
-                        if (cash - Items.getCheckoutTotal() < 0) {
-                            return;
-                        }
-                        dialog.dismiss();
-                        final Dialog dialog1 = new Dialog(v.getContext());
-                        dialog1.setContentView(R.layout.dialog_tender_complete);
-                        TextView change = dialog1.findViewById(R.id.change);
-                        TextView dialogButtonNextOrder = dialog1.findViewById(R.id.dialogButtonNextOrder);
-                        String changeToGive = "Change : $" + String.format(Locale.getDefault(), "%.2f", cash - Items.getCheckoutTotal());
-                        change.setText(changeToGive);
-
-                        dialogButtonNextOrder.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Items.clearCheckout();
-                                CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
-                                activity.getSupportFragmentManager().beginTransaction()
-                                        .replace(R.id.checkout_detail_container, checkoutDetailFragment)
-                                        .commit();
-                                dialog1.dismiss();
-                            }
-                        });
-                        dialog1.show();
+                        saveTenderedSale(v, customerCash, dialog, notes, activity, "0");
                     }
                 });
 
@@ -96,10 +76,7 @@ public class CategoryListActivity extends AppCompatActivity {
                 dialogButtonTakeAway.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        dialog.dismiss();
-                        final Dialog dialog1 = new Dialog(v.getContext());
-                        dialog1.setContentView(R.layout.dialog_tender_complete);
-                        dialog1.show();
+                        saveTenderedSale(v, customerCash, dialog, notes, activity, "1");
                     }
                 });
 
@@ -119,6 +96,39 @@ public class CategoryListActivity extends AppCompatActivity {
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
         new GetCategories(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void saveTenderedSale(View v, EditText customerCash, Dialog dialog, EditText notes, final CategoryListActivity activity, String isTakeAway) {
+        if (customerCash.getText().toString().isEmpty()) {
+            return;
+        }
+        Double cash =  Double.valueOf(customerCash.getText().toString());
+        if (cash - Items.getCheckoutTotal() < 0) {
+            return;
+        }
+        dialog.dismiss();
+
+        new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f",Items.getCheckoutTotal()), isTakeAway ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        final Dialog dialog1 = new Dialog(v.getContext());
+        dialog1.setContentView(R.layout.dialog_tender_complete);
+        dialog1.setCanceledOnTouchOutside(false);
+        TextView change = dialog1.findViewById(R.id.change);
+        TextView dialogButtonNextOrder = dialog1.findViewById(R.id.dialogButtonNextOrder);
+        String changeToGive = "Change : $" + String.format(Locale.getDefault(), "%.2f", cash - Items.getCheckoutTotal());
+        change.setText(changeToGive);
+
+        dialogButtonNextOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Items.clearCheckout();
+                CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+                activity.getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                        .commit();
+                dialog1.dismiss();
+            }
+        });
+        dialog1.show();
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -206,12 +216,61 @@ public class CategoryListActivity extends AppCompatActivity {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
                         Categories.addCategory(Categories.createCategory(jsonObject.getString("_id"), jsonObject.getString("name")));
                     }
-
                     setupRecyclerView((RecyclerView) recyclerView);
                 }
             } catch (JSONException e) {
                 Log.e("Error", "error getting categories ", e);
             }
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class TenderSaleAsync extends AsyncTask<Integer, Integer, String> {
+        String notes;
+        String amount;
+        String isTakeAway;
+
+        TenderSaleAsync(String notes, String amount, String isTakeAway) {
+            this.notes = notes;
+            this.amount = amount;
+            this.isTakeAway = isTakeAway;
+        }
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            JSONArray jsonArray = new JSONArray();
+            try {
+                //0=normal, 1= subitem, 2=addon
+            for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
+                Items.CheckoutItem checkoutItem = entry.getKey();
+                int quantity = entry.getValue();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("product", checkoutItem.getItemName());
+                jsonObject.put("itemid", checkoutItem.getId());
+                jsonObject.put("quantity", quantity);
+                jsonObject.put("type", checkoutItem.isSubType() ? "1" : "0");
+                jsonArray.put(jsonObject);
+                for (Addons.Addon addon : checkoutItem.getAssignedAddons() ) {
+                    JSONObject jsonObject1 = new JSONObject();
+                    jsonObject1.put("product", addon.getAddonName());
+                    jsonObject1.put("itemid", addon.getId());
+                    jsonObject1.put("quantity", quantity);
+                    jsonObject1.put("type", "2");
+                    jsonArray.put(jsonObject1);
+                }
+
+            }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            ConnectToServer.tenderSale(notes, amount, isTakeAway, jsonArray.toString());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
         }
     }
 }

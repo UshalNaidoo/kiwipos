@@ -50,7 +50,16 @@ public class ConnectToServer {
     } catch (Exception e) {
       Log.e("KiwiPos", "Error when retrieving items", e);
     }
+
+
+    
     return null;
+  }
+
+  public static void tenderSale(String notes, String amount, String takeAway, String saleItems) {
+    String parameters = "key=" + API_KEY + "&&notes="+notes + "&&amount="+amount + "&&takeAway="+takeAway + "&&saleItems="+saleItems;
+    String UrlString = ServerSettings.SERVER + ServerSettings.TENDER_SALE;
+    Connect.connectToServer(UrlString, parameters);
   }
 
 }

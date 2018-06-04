@@ -9,4 +9,6 @@ public class ServerSettings {
   static String SUB_ITEMS_FOR_ITEM = "/getSubItemForItem.php";
   static String ADDONS_FOR_ITEM = "/getAddonsForItem.php";
 
+  static String TENDER_SALE = "/tenderSale.php";
+
 }
