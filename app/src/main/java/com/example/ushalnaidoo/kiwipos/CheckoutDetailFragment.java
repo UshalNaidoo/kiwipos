@@ -167,10 +167,11 @@ public class CheckoutDetailFragment extends Fragment {
       String[] possibleAddonsStringArr = new String[possibleAddons.size()];
       final boolean[] selectedItems = new boolean[possibleAddons.size()];
       for(int i = 0; i < possibleAddonsStringArr.length ; i++){
-        possibleAddonsStringArr[i] = possibleAddons.get(i).getAddonName();
+        Addons.Addon addon =  possibleAddons.get(i);
+        possibleAddonsStringArr[i] = addon.getAddonType().equals(Addons.AddonType.ACTUAL) ? addon.getAddonName() + ": $" + addon.getAdjustmentAmount() :  addon.getAddonName() ;
         selectedItems[i] = false;
         for(int j = 0 ; j < selectedAddons.size() ; j++){
-          if(selectedAddons.get(j).getId().equals(possibleAddons.get(i).getId())) {
+          if(selectedAddons.get(j).getId().equals(addon.getId())) {
             selectedItems[i] = true;
             break;
           }
