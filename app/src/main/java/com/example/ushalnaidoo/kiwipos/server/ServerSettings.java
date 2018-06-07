@@ -10,5 +10,6 @@ public class ServerSettings {
   static String ADDONS_FOR_ITEM = "/getAddonsForItem.php";
 
   static String TENDER_SALE = "/tenderSale.php";
+  static String TODAYSSALES = "/getTodaysSales.php";
 
 }

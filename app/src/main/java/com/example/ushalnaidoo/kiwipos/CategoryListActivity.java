@@ -1,8 +1,8 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,20 +14,25 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.adapter.SalesAdapter;
 import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
+import com.example.ushalnaidoo.kiwipos.model.Sale;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,11 +58,11 @@ public class CategoryListActivity extends AppCompatActivity {
         toolbar.setTitle(getTitle());
         final CategoryListActivity activity = this;
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton checkoutButton = findViewById(R.id.checkoutButton);
+        checkoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                if (Items.CHECKOUT_ITEMS.size() == 0 ) {
+                if (Items.CHECKOUT_ITEMS.size() == 0) {
                     return;
                 }
                 final Dialog dialog = new Dialog(view.getContext());
@@ -93,6 +98,15 @@ public class CategoryListActivity extends AppCompatActivity {
 
         });
 
+        FloatingActionButton todaysSalesButton = findViewById(R.id.todaysSalesButton);
+        todaysSalesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                new GetTodaysSales(view.getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
+
+        });
+
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
         new GetCategories(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -102,13 +116,13 @@ public class CategoryListActivity extends AppCompatActivity {
         if (customerCash.getText().toString().isEmpty()) {
             return;
         }
-        Double cash =  Double.valueOf(customerCash.getText().toString());
+        Double cash = Double.valueOf(customerCash.getText().toString());
         if (cash - Items.getCheckoutTotal() < 0) {
             return;
         }
         dialog.dismiss();
 
-        new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f",Items.getCheckoutTotal()), isTakeAway ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f", Items.getCheckoutTotal()), isTakeAway).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         final Dialog dialog1 = new Dialog(v.getContext());
         dialog1.setContentView(R.layout.dialog_tender_complete);
         dialog1.setCanceledOnTouchOutside(false);
@@ -241,25 +255,25 @@ public class CategoryListActivity extends AppCompatActivity {
             JSONArray jsonArray = new JSONArray();
             try {
                 //0=normal, 1= subitem, 2=addon
-            for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
-                Items.CheckoutItem checkoutItem = entry.getKey();
-                int quantity = entry.getValue();
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("product", checkoutItem.getItemName());
-                jsonObject.put("itemid", checkoutItem.getId());
-                jsonObject.put("quantity", quantity);
-                jsonObject.put("type", checkoutItem.isSubType() ? "1" : "0");
-                jsonArray.put(jsonObject);
-                for (Addons.Addon addon : checkoutItem.getAssignedAddons() ) {
-                    JSONObject jsonObject1 = new JSONObject();
-                    jsonObject1.put("product", addon.getAddonName());
-                    jsonObject1.put("itemid", addon.getId());
-                    jsonObject1.put("quantity", quantity);
-                    jsonObject1.put("type", "2");
-                    jsonArray.put(jsonObject1);
-                }
+                for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
+                    Items.CheckoutItem checkoutItem = entry.getKey();
+                    int quantity = entry.getValue();
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("product", checkoutItem.getItemName());
+                    jsonObject.put("itemid", checkoutItem.getId());
+                    jsonObject.put("quantity", quantity);
+                    jsonObject.put("type", checkoutItem.isSubType() ? "1" : "0");
+                    jsonArray.put(jsonObject);
+                    for (Addons.Addon addon : checkoutItem.getAssignedAddons()) {
+                        JSONObject jsonObject1 = new JSONObject();
+                        jsonObject1.put("product", addon.getAddonName());
+                        jsonObject1.put("itemid", addon.getId());
+                        jsonObject1.put("quantity", quantity);
+                        jsonObject1.put("type", "2");
+                        jsonArray.put(jsonObject1);
+                    }
 
-            }
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -271,6 +285,70 @@ public class CategoryListActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
 
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class GetTodaysSales extends AsyncTask<Integer, Integer, String> {
+        Context context;
+        GetTodaysSales(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            return ConnectToServer.getTodaysSales();
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            JSONObject json;
+            JSONArray jsonPosts;
+            try {
+                json = new JSONObject(result);
+                jsonPosts = json.getJSONArray(ConnectToServer.SALES);
+                if (jsonPosts != null &&  jsonPosts.length() > 0) {
+                    List<Sale> sales = new ArrayList<>();
+                    Double todaysTotalSales = Double.valueOf(0);
+                    for (int i = 0; i < jsonPosts.length(); i++) {
+                        JSONObject jsonObject = jsonPosts.getJSONObject(i);
+                        Double saleAmount =  jsonObject.getDouble("amount");
+                        todaysTotalSales += saleAmount;
+                        Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
+                        sales.add(sale);
+                    }
+                    final Dialog dialog = new Dialog(context);
+                    dialog.setContentView(R.layout.dialog_todays_sales);
+                    final TextView customerCount = dialog.findViewById(R.id.customerCount);
+                    final TextView averageCheque = dialog.findViewById(R.id.averageCheque);
+
+                    ListView dialog_ListView = dialog.findViewById(R.id.dialoglist);
+                    SalesAdapter adapter =  new SalesAdapter(context, sales);
+                    dialog_ListView.setAdapter(adapter);
+                    dialog_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+                       @Override
+                        public void onItemClick(AdapterView<?> parent, View view,
+                                                int position, long id) {
+
+                        }});
+
+                    Double average = todaysTotalSales/ jsonPosts.length();
+                    customerCount.setText("Count: " + jsonPosts.length());
+                    averageCheque.setText(" Ave: " + average);
+                    Button cancelButton = dialog.findViewById(R.id.dialogButtonCancel);
+                    cancelButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            } catch (JSONException e) {
+                Log.e("Error", "error getting categories ", e);
+            }
         }
     }
 }

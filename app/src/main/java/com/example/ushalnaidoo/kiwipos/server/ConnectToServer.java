@@ -8,6 +8,7 @@ public class ConnectToServer {
   public static final String ITEMS = "items";
   public static final String SUB_ITEMS = "subitems";
   public static final String ADDONS = "addons";
+  public static final String SALES = "sales";
 
   public static String getCategories() {
     String parameters = "key=" + API_KEY;
@@ -50,9 +51,6 @@ public class ConnectToServer {
     } catch (Exception e) {
       Log.e("KiwiPos", "Error when retrieving items", e);
     }
-
-
-    
     return null;
   }
 
@@ -60,6 +58,18 @@ public class ConnectToServer {
     String parameters = "key=" + API_KEY + "&&notes="+notes + "&&amount="+amount + "&&takeAway="+takeAway + "&&saleItems="+saleItems;
     String UrlString = ServerSettings.SERVER + ServerSettings.TENDER_SALE;
     Connect.connectToServer(UrlString, parameters);
+  }
+
+
+  public static String getTodaysSales() {
+    String parameters = "key=" + API_KEY;
+    String UrlString = ServerSettings.SERVER + ServerSettings.TODAYSSALES;
+    try {
+      return "{" + SALES + ":" + Connect.connectToServer(UrlString, parameters) + "}";
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving categories", e);
+    }
+    return null;
   }
 
 }
