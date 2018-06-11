@@ -29,13 +29,11 @@ public class SalesAdapter extends ArrayAdapter<Sale> {
         if(listItem == null)
             listItem = LayoutInflater.from(context).inflate(R.layout.sales_list_content,parent,false);
 
-        Sale currentMovie = salesList.get(position);
-
+        Sale sale = salesList.get(position);
         TextView details = listItem.findViewById(R.id.detail);
-        details.setText(currentMovie.getNotes());
-
+        details.setText(sale.getNotes());
         TextView price = listItem.findViewById(R.id.amount);
-        price.setText("$"+currentMovie.getAmount());
+        price.setText("$"+sale.getAmount());
 
         return listItem;
     }

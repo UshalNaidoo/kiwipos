@@ -322,6 +322,7 @@ public class CategoryListActivity extends AppCompatActivity {
                     dialog.setContentView(R.layout.dialog_todays_sales);
                     final TextView customerCount = dialog.findViewById(R.id.customerCount);
                     final TextView averageCheque = dialog.findViewById(R.id.averageCheque);
+                    final TextView subTotal = dialog.findViewById(R.id.subTotal);
 
                     ListView dialog_ListView = dialog.findViewById(R.id.dialoglist);
                     SalesAdapter adapter =  new SalesAdapter(context, sales);
@@ -335,7 +336,8 @@ public class CategoryListActivity extends AppCompatActivity {
 
                     Double average = todaysTotalSales/ jsonPosts.length();
                     customerCount.setText("Count: " + jsonPosts.length());
-                    averageCheque.setText(" Ave: " + average);
+                    averageCheque.setText("Average: $" + average);
+                    subTotal.setText("Subtotal: $" + todaysTotalSales);
                     Button cancelButton = dialog.findViewById(R.id.dialogButtonCancel);
                     cancelButton.setOnClickListener(new View.OnClickListener() {
                         @Override
