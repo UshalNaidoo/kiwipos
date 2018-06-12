@@ -6,25 +6,54 @@
     android:layout_height="wrap_content"
     android:padding="10dp">
 
-  <TextView
-      android:layout_width="wrap_content"
+  <Button
+      android:id="@+id/dialogButtonPrint"
+      android:layout_width="110dp"
       android:layout_height="wrap_content"
-      android:layout_alignParentStart="true"
-      android:layout_alignParentLeft="true"
-      android:textSize="20sp"
-      android:textStyle="bold"
-      android:layout_toStartOf="@+id/amount"
-      android:layout_toLeftOf="@+id/amount"
-      android:id="@+id/detail"/>
+      android:background="@android:color/holo_blue_dark"
+      android:layout_centerVertical="true"
+      android:text="Print"/>
 
   <TextView
+      android:id="@+id/time"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:layout_marginLeft="37dp"
+      android:layout_marginStart="37dp"
+      android:layout_marginTop="10dp"
+      android:layout_toEndOf="@+id/dialogButtonPrint"
+      android:layout_toRightOf="@+id/dialogButtonPrint"
+      android:text="aaa"
       android:textSize="20sp"
-      android:textStyle="bold"
-      android:layout_alignParentRight="true"
+      android:textStyle="bold" />
+
+  <TextView
+      android:id="@+id/detail"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:layout_marginEnd="54dp"
+      android:layout_marginRight="54dp"
+      android:layout_marginTop="10dp"
+      android:layout_toLeftOf="@+id/amount"
+      android:layout_toStartOf="@+id/amount"
+      android:gravity="center"
+      android:text="sss"
+      android:textSize="20sp"
+      android:textStyle="bold" />
+
+  <TextView
+      android:id="@+id/amount"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
       android:layout_alignParentEnd="true"
-      android:gravity="right"
-      android:id="@+id/amount"/>
+      android:layout_alignParentRight="true"
+      android:layout_alignParentTop="true"
+      android:layout_marginTop="10dp"
+      android:gravity="center_vertical|right"
+      android:text="eee"
+      android:textSize="20sp"
+      android:textStyle="bold" />
 
 </RelativeLayout>

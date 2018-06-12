@@ -32,7 +32,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -278,7 +281,9 @@ public class CategoryListActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            ConnectToServer.tenderSale(notes, amount, isTakeAway, jsonArray.toString());
+            Date date = new Date();
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            ConnectToServer.tenderSale(notes, amount, isTakeAway, jsonArray.toString(), df.format(date));
             return null;
         }
 
@@ -315,7 +320,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
                         Double saleAmount =  jsonObject.getDouble("amount");
                         todaysTotalSales += saleAmount;
-                        Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
+                        Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("created"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
                         sales.add(sale);
                     }
                     final Dialog dialog = new Dialog(context);
@@ -325,7 +330,7 @@ public class CategoryListActivity extends AppCompatActivity {
                     final TextView subTotal = dialog.findViewById(R.id.subTotal);
 
                     ListView dialog_ListView = dialog.findViewById(R.id.dialoglist);
-                    SalesAdapter adapter =  new SalesAdapter(context, sales);
+                    SalesAdapter adapter = new SalesAdapter(context, sales);
                     dialog_ListView.setAdapter(adapter);
                     dialog_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
                        @Override
@@ -335,9 +340,12 @@ public class CategoryListActivity extends AppCompatActivity {
                         }});
 
                     Double average = todaysTotalSales/ jsonPosts.length();
-                    customerCount.setText("Count: " + jsonPosts.length());
-                    averageCheque.setText("Average: $" + average);
-                    subTotal.setText("Subtotal: $" + todaysTotalSales);
+                    String customerCountText = "Count: " + jsonPosts.length();
+                    customerCount.setText(customerCountText);
+                    String averageChequeText = "Average: $" + String.format(Locale.getDefault(),"%.2f", average);
+                    averageCheque.setText(averageChequeText);
+                    String subTotalText = "Subtotal: $" + String.format(Locale.getDefault(),"%.2f", todaysTotalSales);
+                    subTotal.setText(subTotalText);
                     Button cancelButton = dialog.findViewById(R.id.dialogButtonCancel);
                     cancelButton.setOnClickListener(new View.OnClickListener() {
                         @Override

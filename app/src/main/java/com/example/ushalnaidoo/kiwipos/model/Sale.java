@@ -6,13 +6,15 @@ public class Sale {
   private Double amount;
   private Boolean takeAway;
   private Boolean done;
+  private String time;
 
-  public Sale(String id, String notes, Double amount, Boolean takeAway, Boolean done) {
+  public Sale(String id, String time, String notes, Double amount, Boolean takeAway, Boolean done) {
     this.id = id;
     this.notes = notes;
     this.amount = amount;
     this.takeAway = takeAway;
     this.done = done;
+    this.time = time;
   }
 
   public String getId() {
@@ -53,5 +55,9 @@ public class Sale {
 
   public void setDone(Boolean done) {
     this.done = done;
+  }
+
+  public String getTime() {
+    return time;
   }
 }

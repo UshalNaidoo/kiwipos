@@ -54,8 +54,8 @@ public class ConnectToServer {
     return null;
   }
 
-  public static void tenderSale(String notes, String amount, String takeAway, String saleItems) {
-    String parameters = "key=" + API_KEY + "&&notes="+notes + "&&amount="+amount + "&&takeAway="+takeAway + "&&saleItems="+saleItems;
+  public static void tenderSale(String notes, String amount, String takeAway, String saleItems, String time) {
+    String parameters = "key=" + API_KEY + "&&notes="+notes + "&&amount="+amount + "&&takeAway="+takeAway + "&&saleItems="+saleItems + "&&time="+time;
     String UrlString = ServerSettings.SERVER + ServerSettings.TENDER_SALE;
     Connect.connectToServer(UrlString, parameters);
   }
