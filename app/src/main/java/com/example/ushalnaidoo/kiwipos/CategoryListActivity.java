@@ -14,8 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -69,6 +69,7 @@ public class CategoryListActivity extends AppCompatActivity {
                     return;
                 }
                 final Dialog dialog = new Dialog(view.getContext());
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
                 dialog.setContentView(R.layout.dialog_tender);
                 final EditText customerCash = dialog.findViewById(R.id.customerCash);
                 final EditText notes = dialog.findViewById(R.id.notes);
@@ -127,6 +128,7 @@ public class CategoryListActivity extends AppCompatActivity {
 
         new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f", Items.getCheckoutTotal()), isTakeAway).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         final Dialog dialog1 = new Dialog(v.getContext());
+        dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
         dialog1.setContentView(R.layout.dialog_tender_complete);
         dialog1.setCanceledOnTouchOutside(false);
         TextView change = dialog1.findViewById(R.id.change);
@@ -324,6 +326,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         sales.add(sale);
                     }
                     final Dialog dialog = new Dialog(context);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
                     dialog.setContentView(R.layout.dialog_todays_sales);
                     final TextView customerCount = dialog.findViewById(R.id.customerCount);
                     final TextView averageCheque = dialog.findViewById(R.id.averageCheque);
