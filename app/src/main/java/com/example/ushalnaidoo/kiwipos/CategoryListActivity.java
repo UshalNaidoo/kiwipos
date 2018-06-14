@@ -1,8 +1,10 @@
 package com.example.ushalnaidoo.kiwipos;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -40,6 +42,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.example.ushalnaidoo.kiwipos.model.Items.CHECKOUT_ITEMS;
+
 /**
  * An activity representing a list of Items. This activity
  * has different presentations for handset and tablet-size devices. On
@@ -65,7 +69,7 @@ public class CategoryListActivity extends AppCompatActivity {
         checkoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                if (Items.CHECKOUT_ITEMS.size() == 0) {
+                if (CHECKOUT_ITEMS.size() == 0) {
                     return;
                 }
                 final Dialog dialog = new Dialog(view.getContext());
@@ -116,11 +120,11 @@ public class CategoryListActivity extends AppCompatActivity {
         new GetCategories(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void saveTenderedSale(View v, EditText customerCash, Dialog dialog, EditText notes, final CategoryListActivity activity, String isTakeAway) {
+    private void saveTenderedSale(final View v, EditText customerCash, Dialog dialog, final EditText notes, final CategoryListActivity activity, final String isTakeAway) {
         if (customerCash.getText().toString().isEmpty()) {
             return;
         }
-        Double cash = Double.valueOf(customerCash.getText().toString());
+        final Double cash = Double.valueOf(customerCash.getText().toString());
         if (cash - Items.getCheckoutTotal() < 0) {
             return;
         }
@@ -132,10 +136,10 @@ public class CategoryListActivity extends AppCompatActivity {
         dialog1.setContentView(R.layout.dialog_tender_complete);
         dialog1.setCanceledOnTouchOutside(false);
         TextView change = dialog1.findViewById(R.id.change);
-        TextView dialogButtonNextOrder = dialog1.findViewById(R.id.dialogButtonNextOrder);
-        String changeToGive = "Change : $" + String.format(Locale.getDefault(), "%.2f", cash - Items.getCheckoutTotal());
+        final String changeToGive = "Change : $" + String.format(Locale.getDefault(), "%.2f", cash - Items.getCheckoutTotal());
         change.setText(changeToGive);
 
+        Button dialogButtonNextOrder = dialog1.findViewById(R.id.dialogButtonNextOrder);
         dialogButtonNextOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -147,7 +151,69 @@ public class CategoryListActivity extends AppCompatActivity {
                 dialog1.dismiss();
             }
         });
+
+        Button dialogButtonEmail = dialog1.findViewById(R.id.dialogButtonEmail);
+        dialogButtonEmail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                StringBuilder emailBody = new StringBuilder();
+                emailBody.append("We hope that you enjoyed your meal today at Coconut Grove" + '\n');
+                if (isTakeAway.equals("1")) {
+                    emailBody.append("Take Away order ");
+                } else {
+                    emailBody.append("Dine in order ");
+                }
+                emailBody.append(notes.getText().toString()).append('\n').append('\n');
+
+                for (Map.Entry<Items.CheckoutItem, Integer> entry : CHECKOUT_ITEMS.entrySet()) {
+                    Items.CheckoutItem checkoutItem = entry.getKey();
+                    int quantity = entry.getValue();
+                    Double cost = quantity *  Double.valueOf(checkoutItem.getItemPrice());
+                    emailBody.append(quantity).append("x ").append(checkoutItem.getItemName()).append('\t').append("$").append(String.format(Locale.getDefault(), "%.2f", cost)).append('\n');
+                    for (Addons.Addon addon : checkoutItem.getAssignedAddons()) {
+                        emailBody.append('\t').append(" + ").append(addon.getAddonName()).append('\t').append("$").append(String.format(Locale.getDefault(), "%.2f", Double.valueOf(addon.getAdjustmentAmount()))).append('\n');
+                    }
+                    emailBody.append('\n');
+                }
+                emailBody.append("=============================" + '\n');
+                emailBody.append("Total : $").append(String.format(Locale.getDefault(), "%.2f", Items.getCheckoutTotal())).append('\n');
+                emailBody.append("Paid : $").append(String.format(Locale.getDefault(), "%.2f", cash)).append('\n');
+                emailBody.append(changeToGive).append('\n');
+                emailBody.append("=============================" + '\n' + '\n');
+                emailBody.append("Thank you for your support" + '\n');
+                emailBody.append("Please follow us on Facebook at https://www.facebook.com/CoconutGroveNZ/" + '\n');
+
+                emailResultsToUser(activity, emailBody.toString());
+            }
+        });
         dialog1.show();
+    }
+
+    /**
+     * Starts an Android email intent.
+     * The activity, subject, and bodyText fields are required.
+     * You can pass a null field for the chooserTitle, to, cc, and bcc fields if
+     * you don't want to specify them.
+     */
+    public static void emailResultsToUser(Activity activity,
+                                          String bodyText) {
+        Intent mailIntent = new Intent();
+        mailIntent.setAction(Intent.ACTION_SEND);
+        mailIntent.setType("message/rfc822");
+        mailIntent.putExtra(Intent.EXTRA_SUBJECT, "Receipt for Coconut Grove");
+        mailIntent.putExtra(Intent.EXTRA_TEXT, bodyText);
+
+//        if (null != null) {
+//            mailIntent.putExtra(Intent.EXTRA_EMAIL, (String[]) null);
+//        }
+//        if (null != null) {
+//            mailIntent.putExtra(Intent.EXTRA_CC, (String[]) null);
+//        }
+//        if (null != null) {
+//            mailIntent.putExtra(Intent.EXTRA_BCC, (String[]) null);
+//        }
+//        if ("Receipt" == null) "Receipt" = "Receipt for Coconut Grove";
+        activity.startActivity(Intent.createChooser(mailIntent, "Receipt"));
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -260,7 +326,7 @@ public class CategoryListActivity extends AppCompatActivity {
             JSONArray jsonArray = new JSONArray();
             try {
                 //0=normal, 1= subitem, 2=addon
-                for (Map.Entry<Items.CheckoutItem, Integer> entry : Items.CHECKOUT_ITEMS.entrySet()) {
+                for (Map.Entry<Items.CheckoutItem, Integer> entry : CHECKOUT_ITEMS.entrySet()) {
                     Items.CheckoutItem checkoutItem = entry.getKey();
                     int quantity = entry.getValue();
                     JSONObject jsonObject = new JSONObject();
@@ -298,6 +364,7 @@ public class CategoryListActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     private class GetTodaysSales extends AsyncTask<Integer, Integer, String> {
         Context context;
+
         GetTodaysSales(Context context) {
             this.context = context;
         }
@@ -315,12 +382,12 @@ public class CategoryListActivity extends AppCompatActivity {
             try {
                 json = new JSONObject(result);
                 jsonPosts = json.getJSONArray(ConnectToServer.SALES);
-                if (jsonPosts != null &&  jsonPosts.length() > 0) {
+                if (jsonPosts != null && jsonPosts.length() > 0) {
                     List<Sale> sales = new ArrayList<>();
                     Double todaysTotalSales = Double.valueOf(0);
                     for (int i = 0; i < jsonPosts.length(); i++) {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
-                        Double saleAmount =  jsonObject.getDouble("amount");
+                        Double saleAmount = jsonObject.getDouble("amount");
                         todaysTotalSales += saleAmount;
                         Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("created"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
                         sales.add(sale);
@@ -335,19 +402,20 @@ public class CategoryListActivity extends AppCompatActivity {
                     ListView dialog_ListView = dialog.findViewById(R.id.dialoglist);
                     SalesAdapter adapter = new SalesAdapter(context, sales);
                     dialog_ListView.setAdapter(adapter);
-                    dialog_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-                       @Override
+                    dialog_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
                         public void onItemClick(AdapterView<?> parent, View view,
                                                 int position, long id) {
 
-                        }});
+                        }
+                    });
 
-                    Double average = todaysTotalSales/ jsonPosts.length();
+                    Double average = todaysTotalSales / jsonPosts.length();
                     String customerCountText = "Count: " + jsonPosts.length();
                     customerCount.setText(customerCountText);
-                    String averageChequeText = "Average: $" + String.format(Locale.getDefault(),"%.2f", average);
+                    String averageChequeText = "Average: $" + String.format(Locale.getDefault(), "%.2f", average);
                     averageCheque.setText(averageChequeText);
-                    String subTotalText = "Subtotal: $" + String.format(Locale.getDefault(),"%.2f", todaysTotalSales);
+                    String subTotalText = "Subtotal: $" + String.format(Locale.getDefault(), "%.2f", todaysTotalSales);
                     subTotal.setText(subTotalText);
                     Button cancelButton = dialog.findViewById(R.id.dialogButtonCancel);
                     cancelButton.setOnClickListener(new View.OnClickListener() {
