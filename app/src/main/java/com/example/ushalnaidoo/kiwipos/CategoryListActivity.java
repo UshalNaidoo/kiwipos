@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.example.ushalnaidoo.kiwipos.helper.EmailHelper.emailResultsToUser;
 import static com.example.ushalnaidoo.kiwipos.model.Items.CHECKOUT_ITEMS;
 
 /**
@@ -110,7 +110,7 @@ public class CategoryListActivity extends AppCompatActivity {
         todaysSalesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                new GetTodaysSales(view.getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new GetTodaysSales(activity).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
 
         });
@@ -182,38 +182,10 @@ public class CategoryListActivity extends AppCompatActivity {
                 emailBody.append("=============================" + '\n' + '\n');
                 emailBody.append("Thank you for your support" + '\n');
                 emailBody.append("Please follow us on Facebook at https://www.facebook.com/CoconutGroveNZ/" + '\n');
-
                 emailResultsToUser(activity, emailBody.toString());
             }
         });
         dialog1.show();
-    }
-
-    /**
-     * Starts an Android email intent.
-     * The activity, subject, and bodyText fields are required.
-     * You can pass a null field for the chooserTitle, to, cc, and bcc fields if
-     * you don't want to specify them.
-     */
-    public static void emailResultsToUser(Activity activity,
-                                          String bodyText) {
-        Intent mailIntent = new Intent();
-        mailIntent.setAction(Intent.ACTION_SEND);
-        mailIntent.setType("message/rfc822");
-        mailIntent.putExtra(Intent.EXTRA_SUBJECT, "Receipt for Coconut Grove");
-        mailIntent.putExtra(Intent.EXTRA_TEXT, bodyText);
-
-//        if (null != null) {
-//            mailIntent.putExtra(Intent.EXTRA_EMAIL, (String[]) null);
-//        }
-//        if (null != null) {
-//            mailIntent.putExtra(Intent.EXTRA_CC, (String[]) null);
-//        }
-//        if (null != null) {
-//            mailIntent.putExtra(Intent.EXTRA_BCC, (String[]) null);
-//        }
-//        if ("Receipt" == null) "Receipt" = "Receipt for Coconut Grove";
-        activity.startActivity(Intent.createChooser(mailIntent, "Receipt"));
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -363,10 +335,10 @@ public class CategoryListActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     private class GetTodaysSales extends AsyncTask<Integer, Integer, String> {
-        Context context;
+        Activity activity;
 
-        GetTodaysSales(Context context) {
-            this.context = context;
+        GetTodaysSales(Activity activity) {
+            this.activity = activity;
         }
 
         @Override
@@ -383,8 +355,8 @@ public class CategoryListActivity extends AppCompatActivity {
                 json = new JSONObject(result);
                 jsonPosts = json.getJSONArray(ConnectToServer.SALES);
                 if (jsonPosts != null && jsonPosts.length() > 0) {
-                    List<Sale> sales = new ArrayList<>();
-                    Double todaysTotalSales = Double.valueOf(0);
+                    final List<Sale> sales = new ArrayList<>();
+                    Double todaysTotalSales = 0d;
                     for (int i = 0; i < jsonPosts.length(); i++) {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
                         Double saleAmount = jsonObject.getDouble("amount");
@@ -392,7 +364,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("created"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
                         sales.add(sale);
                     }
-                    final Dialog dialog = new Dialog(context);
+                    final Dialog dialog = new Dialog(activity);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
                     dialog.setContentView(R.layout.dialog_todays_sales);
                     final TextView customerCount = dialog.findViewById(R.id.customerCount);
@@ -400,7 +372,7 @@ public class CategoryListActivity extends AppCompatActivity {
                     final TextView subTotal = dialog.findViewById(R.id.subTotal);
 
                     ListView dialog_ListView = dialog.findViewById(R.id.dialoglist);
-                    SalesAdapter adapter = new SalesAdapter(context, sales);
+                    SalesAdapter adapter = new SalesAdapter(activity, sales);
                     dialog_ListView.setAdapter(adapter);
                     dialog_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -411,9 +383,9 @@ public class CategoryListActivity extends AppCompatActivity {
                     });
 
                     Double average = todaysTotalSales / jsonPosts.length();
-                    String customerCountText = "Count: " + jsonPosts.length();
+                    final String customerCountText = "Count: " + jsonPosts.length();
                     customerCount.setText(customerCountText);
-                    String averageChequeText = "Average: $" + String.format(Locale.getDefault(), "%.2f", average);
+                    final String averageChequeText = "Average: $" + String.format(Locale.getDefault(), "%.2f", average);
                     averageCheque.setText(averageChequeText);
                     String subTotalText = "Subtotal: $" + String.format(Locale.getDefault(), "%.2f", todaysTotalSales);
                     subTotal.setText(subTotalText);
@@ -422,6 +394,25 @@ public class CategoryListActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             dialog.dismiss();
+                        }
+                    });
+                    Button cashUpButton = dialog.findViewById(R.id.dialogButtonCashUp);
+                    cashUpButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            StringBuilder emailBody = new StringBuilder();
+                            emailBody.append("Cashed up at ").append((new Date().toString()));
+                            emailBody.append("==================").append('\n');
+                            emailBody.append(customerCountText).append('\n');
+                            emailBody.append(averageChequeText).append('\n');
+                            emailBody.append(subTotal).append('\n');
+                            emailBody.append("==================").append('\n');
+
+                            for (Sale sale : sales) {
+                                emailBody.append(sale.getTime()).append(" ").append(sale.getNotes()).append("    ").append("$").append(String.format(Locale.getDefault(), "%.2f",sale.getAmount())).append('\n');
+                            }
+                            emailBody.append("=============================" + '\n');
+                            emailResultsToUser(activity, emailBody.toString());
                         }
                     });
 
