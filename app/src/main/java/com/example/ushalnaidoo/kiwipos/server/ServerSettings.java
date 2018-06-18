@@ -11,5 +11,6 @@ public class ServerSettings {
 
   static String TENDER_SALE = "/tenderSale.php";
   static String TODAYSSALES = "/getTodaysSales.php";
+  static String CASHUP = "/cashup.php";
 
 }

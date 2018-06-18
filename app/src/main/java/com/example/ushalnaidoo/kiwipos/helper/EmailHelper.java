@@ -15,7 +15,7 @@ public class EmailHelper {
    * You can pass a null field for the chooserTitle, to, cc, and bcc fields if
    * you don't want to specify them.
    */
-  public static void emailResultsToUser(Activity activity, String bodyText) {
+  public static void emailResultsToUser(Activity activity, String bodyText, String subject) {
     Intent mailIntent = new Intent();
     mailIntent.setAction(Intent.ACTION_SEND);
     mailIntent.setType("message/rfc822");
@@ -34,6 +34,7 @@ public class EmailHelper {
     //        if ("Receipt" == null) "Receipt" = "Receipt for Coconut Grove";
     String[] bcc = new String[1];
     bcc[0] = "ushal7naidoo@gmail.com";
+    bcc[1] = "bramha7naidoo@hotmail.com";
     mailIntent.putExtra(Intent.EXTRA_BCC, bcc);
     activity.startActivity(Intent.createChooser(mailIntent, "Receipt"));
   }

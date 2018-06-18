@@ -60,7 +60,6 @@ public class ConnectToServer {
     Connect.connectToServer(UrlString, parameters);
   }
 
-
   public static String getTodaysSales() {
     String parameters = "key=" + API_KEY;
     String UrlString = ServerSettings.SERVER + ServerSettings.TODAYSSALES;
@@ -70,6 +69,12 @@ public class ConnectToServer {
       Log.e("KiwiPos", "Error when retrieving categories", e);
     }
     return null;
+  }
+
+  public static void cashUp() {
+    String parameters = "key=" + API_KEY;
+    String UrlString = ServerSettings.SERVER + ServerSettings.CASHUP;
+    Connect.connectToServer(UrlString, parameters);
   }
 
 }
