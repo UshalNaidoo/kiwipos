@@ -19,7 +19,7 @@ public class EmailHelper {
     Intent mailIntent = new Intent();
     mailIntent.setAction(Intent.ACTION_SEND);
     mailIntent.setType("message/rfc822");
-    mailIntent.putExtra(Intent.EXTRA_SUBJECT, "Receipt for Coconut Grove");
+    mailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
     mailIntent.putExtra(Intent.EXTRA_TEXT, bodyText);
 
     //        if (null != null) {
@@ -31,11 +31,12 @@ public class EmailHelper {
     //        if (null != null) {
     //            mailIntent.putExtra(Intent.EXTRA_BCC, (String[]) null);
     //        }
-    //        if ("Receipt" == null) "Receipt" = "Receipt for Coconut Grove";
     String[] bcc = new String[1];
     bcc[0] = "ushal7naidoo@gmail.com";
-    bcc[1] = "bramha7naidoo@hotmail.com";
     mailIntent.putExtra(Intent.EXTRA_BCC, bcc);
-    activity.startActivity(Intent.createChooser(mailIntent, "Receipt"));
+    String[] send = new String[1];
+    send[0] = "bramha7naidoo@hotmail.com";
+    mailIntent.putExtra(Intent.EXTRA_EMAIL, send);
+    activity.startActivity(Intent.createChooser(mailIntent, subject));
   }
 }

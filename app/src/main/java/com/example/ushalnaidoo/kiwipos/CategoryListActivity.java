@@ -414,8 +414,10 @@ public class CategoryListActivity extends AppCompatActivity {
           cashUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+              Date date = new Date();
+              DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
               StringBuilder emailBody = new StringBuilder();
-              emailBody.append("Cashed up at ").append((new Date().toString()));
+              emailBody.append("Cashed up at ").append((df.format(date)));
               emailBody.append("==================").append('\n');
               emailBody.append(customerCountText).append('\n');
               emailBody.append(averageChequeText).append('\n');
@@ -427,8 +429,6 @@ public class CategoryListActivity extends AppCompatActivity {
                          .append(String.format(Locale.getDefault(), "%.2f", sale.getAmount())).append('\n');
               }
               emailBody.append("=============================" + '\n');
-              Date date = new Date();
-              DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
               emailResultsToUser(activity, emailBody.toString(), "End of day cash up: " + df.format(date));
               new CashUp().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
