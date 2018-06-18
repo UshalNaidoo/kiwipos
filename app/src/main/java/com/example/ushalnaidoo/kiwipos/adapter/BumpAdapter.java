@@ -67,7 +67,8 @@ public class BumpAdapter extends ArrayAdapter<TenderedSale> {
         bump.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new GetTenderedSales(sale.getId());
+                salesList.remove(sale);
+                new BumpOrder(sale.getId()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);;
             }
         });
 
@@ -75,9 +76,9 @@ public class BumpAdapter extends ArrayAdapter<TenderedSale> {
     }
 
     @SuppressLint("StaticFieldLeak")
-    private class GetTenderedSales extends AsyncTask<Integer, Integer, String> {
+    private class BumpOrder extends AsyncTask<Integer, Integer, String> {
         String orderId;
-        GetTenderedSales(String orderId) {
+        BumpOrder(String orderId) {
             this.orderId = orderId;
         }
 
