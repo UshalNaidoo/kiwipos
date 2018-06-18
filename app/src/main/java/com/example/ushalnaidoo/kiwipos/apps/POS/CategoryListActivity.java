@@ -122,7 +122,8 @@ public class CategoryListActivity extends AppCompatActivity {
         new GetCategories(recyclerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void saveTenderedSale(final View v, EditText customerCash, Dialog dialog, final EditText notes, final CategoryListActivity activity, final String isTakeAway) {
+    private void saveTenderedSale(final View v, EditText customerCash, Dialog dialog, final EditText notes, final CategoryListActivity activity,
+                                  final String isTakeAway) {
         if (customerCash.getText().toString().isEmpty()) {
             return;
         }
@@ -132,7 +133,8 @@ public class CategoryListActivity extends AppCompatActivity {
         }
         dialog.dismiss();
 
-        new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f", Items.getCheckoutTotal()), isTakeAway).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new TenderSaleAsync(notes.getText().toString(), String.format(Locale.getDefault(), "%.2f", Items.getCheckoutTotal()), isTakeAway)
+                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         final Dialog dialog1 = new Dialog(v.getContext());
         dialog1.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
         dialog1.setContentView(R.layout.dialog_tender_complete);
@@ -170,10 +172,12 @@ public class CategoryListActivity extends AppCompatActivity {
                 for (Map.Entry<Items.CheckoutItem, Integer> entry : CHECKOUT_ITEMS.entrySet()) {
                     Items.CheckoutItem checkoutItem = entry.getKey();
                     int quantity = entry.getValue();
-                    Double cost = quantity *  Double.valueOf(checkoutItem.getItemPrice());
-                    emailBody.append(quantity).append("x ").append(checkoutItem.getItemName()).append('\t').append("$").append(String.format(Locale.getDefault(), "%.2f", cost)).append('\n');
+                    Double cost = quantity * Double.valueOf(checkoutItem.getItemPrice());
+                    emailBody.append(quantity).append("x ").append(checkoutItem.getItemName()).append('\t').append("$")
+                            .append(String.format(Locale.getDefault(), "%.2f", cost)).append('\n');
                     for (Addons.Addon addon : checkoutItem.getAssignedAddons()) {
-                        emailBody.append('\t').append(" + ").append(addon.getAddonName()).append('\t').append("$").append(String.format(Locale.getDefault(), "%.2f", Double.valueOf(addon.getAdjustmentAmount()))).append('\n');
+                        emailBody.append('\t').append(" + ").append(addon.getAddonName()).append('\t').append("$")
+                                .append(String.format(Locale.getDefault(), "%.2f", Double.valueOf(addon.getAdjustmentAmount()))).append('\n');
                     }
                     emailBody.append('\n');
                 }
@@ -184,7 +188,7 @@ public class CategoryListActivity extends AppCompatActivity {
                 emailBody.append("=============================" + '\n' + '\n');
                 emailBody.append("Thank you for your support" + '\n');
                 emailBody.append("Please follow us on Facebook at https://www.facebook.com/CoconutGroveNZ/" + '\n');
-                emailResultsToUser(activity, emailBody.toString());
+                emailResultsToUser(activity, emailBody.toString(), "Receipt for Coconut Grove");
             }
         });
         dialog1.show();
@@ -198,6 +202,7 @@ public class CategoryListActivity extends AppCompatActivity {
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final CategoryListActivity mParentActivity;
+
         private final List<Categories.Category> categories;
 
         private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -240,6 +245,7 @@ public class CategoryListActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
+
             final TextView categoryName;
 
             ViewHolder(View view) {
@@ -251,6 +257,7 @@ public class CategoryListActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     private class GetCategories extends AsyncTask<Integer, Integer, String> {
+
         View recyclerView;
 
         GetCategories(View recyclerView) {
@@ -277,7 +284,8 @@ public class CategoryListActivity extends AppCompatActivity {
                     }
                     setupRecyclerView((RecyclerView) recyclerView);
                 }
-            } catch (JSONException e) {
+            }
+            catch (JSONException e) {
                 Log.e("Error", "error getting categories ", e);
             }
         }
@@ -285,8 +293,11 @@ public class CategoryListActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     private class TenderSaleAsync extends AsyncTask<Integer, Integer, String> {
+
         String notes;
+
         String amount;
+
         String isTakeAway;
 
         TenderSaleAsync(String notes, String amount, String isTakeAway) {
@@ -319,7 +330,8 @@ public class CategoryListActivity extends AppCompatActivity {
                     }
 
                 }
-            } catch (JSONException e) {
+            }
+            catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -337,6 +349,7 @@ public class CategoryListActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     private class GetTodaysSales extends AsyncTask<Integer, Integer, String> {
+
         Activity activity;
 
         GetTodaysSales(Activity activity) {
@@ -348,6 +361,7 @@ public class CategoryListActivity extends AppCompatActivity {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
             return ConnectToServer.getTodaysSales();
         }
+
 
         @Override
         protected void onPostExecute(String result) {
@@ -402,8 +416,10 @@ public class CategoryListActivity extends AppCompatActivity {
                     cashUpButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            Date date = new Date();
+                            DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
                             StringBuilder emailBody = new StringBuilder();
-                            emailBody.append("Cashed up at ").append((new Date().toString()));
+                            emailBody.append("Cashed up at ").append((df.format(date)));
                             emailBody.append("==================").append('\n');
                             emailBody.append(customerCountText).append('\n');
                             emailBody.append(averageChequeText).append('\n');
@@ -414,7 +430,8 @@ public class CategoryListActivity extends AppCompatActivity {
                                 emailBody.append(sale.getTime()).append(" ").append(sale.getNotes()).append("    ").append("$").append(String.format(Locale.getDefault(), "%.2f",sale.getAmount())).append('\n');
                             }
                             emailBody.append("=============================" + '\n');
-                            emailResultsToUser(activity, emailBody.toString());
+                            emailResultsToUser(activity, emailBody.toString(), "End of day cash up: " + df.format(date));
+                            new CashUp().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                     });
 
@@ -423,6 +440,25 @@ public class CategoryListActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 Log.e("Error", "error getting categories ", e);
             }
+        }
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    private class CashUp extends AsyncTask<Integer, Integer, String> {
+
+        CashUp() {
+        }
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            ConnectToServer.cashUp();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
         }
     }
 }

@@ -81,14 +81,21 @@ public class ConnectToServer {
     }
     return null;
   }
+
   public static void bumpOrders(String orderid) {
-    String parameters = "key=" + API_KEY+ "&&orderid="+orderid;
+    String parameters = "key=" + API_KEY + "&&orderid=" + orderid;
     String UrlString = ServerSettings.SERVER + ServerSettings.BUMPORDER;
     try {
       Connect.connectToServer(UrlString, parameters);
     } catch (Exception e) {
       Log.e("KiwiPos", "Error when retrieving categories", e);
     }
+  }
+
+  public static void cashUp() {
+    String parameters = "key=" + API_KEY;
+    String UrlString = ServerSettings.SERVER + ServerSettings.CASHUP;
+    Connect.connectToServer(UrlString, parameters);
   }
 
 }
