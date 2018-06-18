@@ -3,7 +3,7 @@ package com.example.ushalnaidoo.kiwipos.server;
 import android.util.Log;
 
 public class ConnectToServer {
-  public static final String API_KEY = "AoD93128Jd73jKH31je3";
+  private static final String API_KEY = "AoD93128Jd73jKH31je3";
   public static final String CATEGORIES = "categories";
   public static final String ITEMS = "items";
   public static final String SUB_ITEMS = "subitems";
@@ -60,7 +60,6 @@ public class ConnectToServer {
     Connect.connectToServer(UrlString, parameters);
   }
 
-
   public static String getTodaysSales() {
     String parameters = "key=" + API_KEY;
     String UrlString = ServerSettings.SERVER + ServerSettings.TODAYSSALES;
@@ -70,6 +69,26 @@ public class ConnectToServer {
       Log.e("KiwiPos", "Error when retrieving categories", e);
     }
     return null;
+  }
+
+  public static String getTenderedSales() {
+    String parameters = "key=" + API_KEY;
+    String UrlString = ServerSettings.SERVER + ServerSettings.TENDEREDSALES;
+    try {
+      return "{" + SALES + ":" + Connect.connectToServer(UrlString, parameters) + "}";
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving categories", e);
+    }
+    return null;
+  }
+  public static void bumpOrders(String orderid) {
+    String parameters = "key=" + API_KEY+ "&&orderid="+orderid;
+    String UrlString = ServerSettings.SERVER + ServerSettings.BUMPORDER;
+    try {
+      Connect.connectToServer(UrlString, parameters);
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving categories", e);
+    }
   }
 
 }

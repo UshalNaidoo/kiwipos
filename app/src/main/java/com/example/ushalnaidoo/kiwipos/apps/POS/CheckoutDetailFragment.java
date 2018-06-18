@@ -1,4 +1,4 @@
-package com.example.ushalnaidoo.kiwipos;
+package com.example.ushalnaidoo.kiwipos.apps.POS;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.R;
 import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 

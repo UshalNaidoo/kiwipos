@@ -1,9 +1,8 @@
-package com.example.ushalnaidoo.kiwipos;
+package com.example.ushalnaidoo.kiwipos.apps.POS;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,11 +21,14 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.R;
 import com.example.ushalnaidoo.kiwipos.adapter.SalesAdapter;
+import com.example.ushalnaidoo.kiwipos.enums.SaleStatus;
 import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 import com.example.ushalnaidoo.kiwipos.model.Sale;
+import com.example.ushalnaidoo.kiwipos.model.TenderedSale;
 import com.example.ushalnaidoo.kiwipos.server.ConnectToServer;
 
 import org.json.JSONArray;
@@ -361,7 +363,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
                         Double saleAmount = jsonObject.getDouble("amount");
                         todaysTotalSales += saleAmount;
-                        Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("created"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), jsonObject.getString("done").equals("1"));
+                        Sale sale = new Sale(jsonObject.getString("_id"), jsonObject.getString("created"), jsonObject.getString("notes"), saleAmount, jsonObject.getString("takeaway").equals("1"), SaleStatus.values()[jsonObject.getInt("done")]);
                         sales.add(sale);
                     }
                     final Dialog dialog = new Dialog(activity);

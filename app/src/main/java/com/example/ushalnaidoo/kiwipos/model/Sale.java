@@ -1,19 +1,21 @@
 package com.example.ushalnaidoo.kiwipos.model;
 
+import com.example.ushalnaidoo.kiwipos.enums.SaleStatus;
+
 public class Sale {
   private String id;
   private String notes;
   private Double amount;
   private Boolean takeAway;
-  private Boolean done;
+  private SaleStatus status;
   private String time;
 
-  public Sale(String id, String time, String notes, Double amount, Boolean takeAway, Boolean done) {
+  public Sale(String id, String time, String notes, Double amount, Boolean takeAway, SaleStatus status) {
     this.id = id;
     this.notes = notes;
     this.amount = amount;
     this.takeAway = takeAway;
-    this.done = done;
+    this.status = status;
     this.time = time;
   }
 
@@ -49,15 +51,15 @@ public class Sale {
     this.takeAway = takeAway;
   }
 
-  public Boolean getDone() {
-    return done;
-  }
-
-  public void setDone(Boolean done) {
-    this.done = done;
-  }
-
   public String getTime() {
     return time;
+  }
+
+  public SaleStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(SaleStatus status) {
+    this.status = status;
   }
 }

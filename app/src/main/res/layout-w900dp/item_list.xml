@@ -7,7 +7,7 @@
               android:divider="?android:attr/dividerHorizontal"
               android:orientation="horizontal"
               android:showDividers="middle"
-              tools:context="com.example.ushalnaidoo.kiwipos.CategoryListActivity">
+              tools:context="com.example.ushalnaidoo.kiwipos.apps.POS.CategoryListActivity">
 
   <!--
     This layout is a two-pane layout for the Items
@@ -24,7 +24,7 @@
                                           android:paddingLeft="16dp"
                                           android:paddingRight="16dp"
                                           app:layoutManager="LinearLayoutManager"
-                                          tools:context="com.example.ushalnaidoo.kiwipos.CategoryListActivity"
+                                          tools:context="com.example.ushalnaidoo.kiwipos.apps.POS.CategoryListActivity"
                                           tools:listitem="@layout/category_list_content"/>
 
   <FrameLayout

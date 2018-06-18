@@ -1,4 +1,4 @@
-package com.example.ushalnaidoo.kiwipos;
+package com.example.ushalnaidoo.kiwipos.apps.POS;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.ushalnaidoo.kiwipos.R;
 import com.example.ushalnaidoo.kiwipos.model.Addons;
 import com.example.ushalnaidoo.kiwipos.model.Categories;
 import com.example.ushalnaidoo.kiwipos.model.Items;

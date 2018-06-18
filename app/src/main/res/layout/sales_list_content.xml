@@ -6,14 +6,6 @@
     android:layout_height="wrap_content"
     android:padding="10dp">
 
-  <Button
-      android:id="@+id/dialogButtonPrint"
-      android:layout_width="110dp"
-      android:layout_height="wrap_content"
-      android:background="@android:color/holo_blue_dark"
-      android:layout_centerVertical="true"
-      android:text="Print"/>
-
   <TextView
       android:id="@+id/time"
       android:layout_width="wrap_content"
@@ -22,8 +14,6 @@
       android:layout_marginLeft="37dp"
       android:layout_marginStart="37dp"
       android:layout_marginTop="10dp"
-      android:layout_toEndOf="@+id/dialogButtonPrint"
-      android:layout_toRightOf="@+id/dialogButtonPrint"
       android:text="aaa"
       android:textSize="20sp"
       android:textStyle="bold" />

@@ -21,6 +21,6 @@
                                           android:layout_width="match_parent"
                                           android:layout_height="match_parent"
                                           app:layoutManager="LinearLayoutManager"
-                                          tools:context="com.example.ushalnaidoo.kiwipos.ItemDetailFragment"
+                                          tools:context="com.example.ushalnaidoo.kiwipos.apps.POS.ItemDetailFragment"
                                           tools:listitem="@layout/item_list_content"/>
 </LinearLayout>

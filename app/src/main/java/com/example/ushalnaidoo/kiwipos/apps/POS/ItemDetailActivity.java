@@ -1,4 +1,4 @@
-package com.example.ushalnaidoo.kiwipos;
+package com.example.ushalnaidoo.kiwipos.apps.POS;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.example.ushalnaidoo.kiwipos.R;
 import com.example.ushalnaidoo.kiwipos.model.Items;
 
 /**
