@@ -209,13 +209,42 @@ public class CategoryListActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Categories.Category category = (Categories.Category) view.getTag();
-                Bundle arguments = new Bundle();
-                arguments.putString(ItemDetailFragment.CATEGORY_ID, category.getId());
-                ItemDetailFragment fragment = new ItemDetailFragment();
-                fragment.setArguments(arguments);
-                mParentActivity.getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.item_detail_container, fragment)
-                        .commit();
+                if (!category.getId().equals("9999")) {
+                    Bundle arguments = new Bundle();
+                    arguments.putString(ItemDetailFragment.CATEGORY_ID, category.getId());
+                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    fragment.setArguments(arguments);
+                    mParentActivity.getSupportFragmentManager().beginTransaction()
+                                   .replace(R.id.item_detail_container, fragment)
+                                   .commit();
+                }
+                else {
+                    final Dialog dialog = new Dialog(view.getContext());
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); //before
+                    dialog.setContentView(R.layout.dialog_misc_item);
+                    final EditText itemName = dialog.findViewById(R.id.item);
+                    final EditText itemCost = dialog.findViewById(R.id.itemCost);
+                    Button dialogButtonAdd = dialog.findViewById(R.id.dialogButtonAdd);
+                    dialogButtonAdd.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Items.Item item = Items.createItem("9999", itemName.getText().toString(), itemCost.getText().toString(), false, false);
+                            Items.CheckoutItem checkoutItem = new Items.CheckoutItem(item, false);
+                            ItemDetailFragment.getSimpleItemRecyclerViewAdapter().updateCheckout(checkoutItem);
+                            dialog.dismiss();
+                        }
+                    });
+
+                    Button cancelButton = dialog.findViewById(R.id.dialogButtonCancel);
+                    cancelButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialog.show();
+                }
             }
         };
 
@@ -284,6 +313,7 @@ public class CategoryListActivity extends AppCompatActivity {
                     }
                     setupRecyclerView((RecyclerView) recyclerView);
                 }
+                Categories.addCategory(Categories.createCategory("9999", "Misc"));
             }
             catch (JSONException e) {
                 Log.e("Error", "error getting categories ", e);

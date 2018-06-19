@@ -2,6 +2,7 @@ package com.example.ushalnaidoo.kiwipos.apps.POS;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,8 +35,11 @@ public class ItemDetailFragment extends Fragment {
 
   public static final String CATEGORY_ID = "category_id";
   private Categories.Category mItem;
+  private static ItemDetailFragment mParentActivity;
+  public static SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter;
 
   public ItemDetailFragment() {
+    mParentActivity = this;
   }
 
   @Override
@@ -44,6 +48,11 @@ public class ItemDetailFragment extends Fragment {
     if (getArguments().containsKey(CATEGORY_ID)) {
       mItem = Categories.getHashMap().get(getArguments().getString(CATEGORY_ID));
     }
+    mParentActivity = this;
+  }
+
+  public ItemDetailFragment getItemDetailFragment() {
+    return this;
   }
 
   @Override
@@ -64,13 +73,19 @@ public class ItemDetailFragment extends Fragment {
     return rootView;
   }
 
-  private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-    recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, Items.ITEMS));
+  public static SimpleItemRecyclerViewAdapter getSimpleItemRecyclerViewAdapter(){
+    if (simpleItemRecyclerViewAdapter == null) {
+      simpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(mParentActivity, Items.ITEMS);
+    }
+    return simpleItemRecyclerViewAdapter;
   }
 
-  public class SimpleItemRecyclerViewAdapter
+  private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+    recyclerView.setAdapter(getSimpleItemRecyclerViewAdapter());
+  }
+
+  public static class SimpleItemRecyclerViewAdapter
       extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-    private final ItemDetailFragment mParentActivity;
     private final List<Items.Item> mValues;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -117,7 +132,7 @@ public class ItemDetailFragment extends Fragment {
       }
     };
 
-    private void updateCheckout(Items.CheckoutItem item) {
+    public void updateCheckout(Items.CheckoutItem item) {
       Items.addToCheckout(item);
       Bundle arguments = new Bundle();
       arguments.putString(ItemDetailFragment.CATEGORY_ID, item.getId());
@@ -142,7 +157,7 @@ public class ItemDetailFragment extends Fragment {
 
     @Override
     public void onBindViewHolder(final SimpleItemRecyclerViewAdapter.ViewHolder holder, int position) {
-      holder.content.setBackgroundColor(mValues.get(position).getSubItemsExist() ? getResources().getColor(android.R.color.holo_purple) : getResources().getColor(android.R.color.holo_green_light));
+      holder.content.setBackgroundColor(mValues.get(position).getSubItemsExist() ? Color.parseColor("#ffaa66cc") : Color.parseColor("#ff99cc00"));
       holder.itemName.setText(mValues.get(position).getItemName());
       holder.price.setText(String.format(mValues.get(position).getSubItemsExist() ? "Click for more" : "$%s", mValues.get(position).getItemPrice()));
       holder.itemView.setTag(mValues.get(position));
