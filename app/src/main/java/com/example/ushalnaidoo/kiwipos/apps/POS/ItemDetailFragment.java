@@ -133,14 +133,16 @@ public class ItemDetailFragment extends Fragment {
     };
 
     public void updateCheckout(Items.CheckoutItem item) {
-      Items.addToCheckout(item);
-      Bundle arguments = new Bundle();
-      arguments.putString(ItemDetailFragment.CATEGORY_ID, item.getId());
-      CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
-      checkoutDetailFragment.setArguments(arguments);
-      mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
-                     .replace(R.id.checkout_detail_container, checkoutDetailFragment)
-                     .commit();
+      if (mParentActivity.getActivity() != null) {
+        Items.addToCheckout(item);
+        Bundle arguments = new Bundle();
+        arguments.putString(ItemDetailFragment.CATEGORY_ID, item.getId());
+        CheckoutDetailFragment checkoutDetailFragment = new CheckoutDetailFragment();
+        checkoutDetailFragment.setArguments(arguments);
+        mParentActivity.getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.checkout_detail_container, checkoutDetailFragment)
+                .commit();
+      }
     }
 
     SimpleItemRecyclerViewAdapter(ItemDetailFragment parent, List<Items.Item> items) {
