@@ -13,6 +13,7 @@ public class ServerSettings {
 
   static String TODAYSSALES = "/getTodaysSales.php";
   static String TENDEREDSALES = "/getTenderedSales.php";
+  static String TENDEREDSALESCOUNT = "/getTenderedSalesCount.php";
   static String BUMPORDER = "/bumporder.php";
   static String CASHUP = "/cashup.php";
 }

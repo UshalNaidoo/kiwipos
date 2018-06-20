@@ -42,7 +42,7 @@ public class BumpScreen extends Activity {
         startRepeatingTask();
     }
 
-    final int INTERVAL = 1000 * 5; //2 minutes
+    final int INTERVAL = 1000 * 5;
     final Handler mHandler = new Handler();
     final Runnable mHandlerTask = new Runnable()
     {
@@ -75,11 +75,17 @@ public class BumpScreen extends Activity {
         @Override
         protected String doInBackground(Integer... params) {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-            return ConnectToServer.getTenderedSales();
+            if (sales.size() != ConnectToServer.getTenderedSalesCount()) {
+                return ConnectToServer.getTenderedSales();
+            }
+            return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
+            if (result == null) {
+                return;
+            }
             JSONObject json;
             JSONArray jsonPosts;
             try {
@@ -87,7 +93,6 @@ public class BumpScreen extends Activity {
                 json = new JSONObject(result);
                 jsonPosts = json.getJSONArray(ConnectToServer.SALES);
                 if (jsonPosts != null && jsonPosts.length() > 0) {
-                    //TODO Do a check if the server count is the same as the previous sales account before refreshing
                     for (int i = 0; i < jsonPosts.length(); i++) {
                         JSONObject jsonObject = jsonPosts.getJSONObject(i);
                         TenderedSale sale = new TenderedSale(jsonObject.getString("_id"),

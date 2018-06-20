@@ -82,6 +82,17 @@ public class ConnectToServer {
     return null;
   }
 
+  public static int getTenderedSalesCount() {
+    String parameters = "key=" + API_KEY;
+    String UrlString = ServerSettings.SERVER + ServerSettings.TENDEREDSALESCOUNT;
+    try {
+      return Integer.parseInt(Connect.connectToServer(UrlString, parameters).split(" ")[0]);
+    } catch (Exception e) {
+      Log.e("KiwiPos", "Error when retrieving categories", e);
+    }
+    return 0;
+  }
+
   public static void bumpOrders(String orderid) {
     String parameters = "key=" + API_KEY + "&&orderid=" + orderid;
     String UrlString = ServerSettings.SERVER + ServerSettings.BUMPORDER;
