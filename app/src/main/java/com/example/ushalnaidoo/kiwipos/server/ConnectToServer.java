@@ -1,5 +1,10 @@
 package com.example.ushalnaidoo.kiwipos.server;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import android.util.Log;
 
 public class ConnectToServer {
@@ -103,8 +108,10 @@ public class ConnectToServer {
     }
   }
 
-  public static void cashUp() {
-    String parameters = "key=" + API_KEY;
+  public static void cashUp(int count, String average, String total) {
+    Date date = new Date();
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    String parameters = "key=" + API_KEY+ "&&count=" + count+ "&&average=" + average+ "&&total=" + total+ "&&time=" + df.format(date);
     String UrlString = ServerSettings.SERVER + ServerSettings.CASHUP;
     Connect.connectToServer(UrlString, parameters);
   }

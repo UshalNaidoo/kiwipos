@@ -396,7 +396,7 @@ public class CategoryListActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             JSONObject json;
-            JSONArray jsonPosts;
+            final JSONArray jsonPosts;
             try {
                 json = new JSONObject(result);
                 jsonPosts = json.getJSONArray(ConnectToServer.SALES);
@@ -428,7 +428,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         }
                     });
 
-                    Double average = todaysTotalSales / jsonPosts.length();
+                    final Double average = todaysTotalSales / jsonPosts.length();
                     final String customerCountText = "Count: " + jsonPosts.length();
                     customerCount.setText(customerCountText);
                     final String averageChequeText = "Average: $" + String.format(Locale.getDefault(), "%.2f", average);
@@ -443,6 +443,7 @@ public class CategoryListActivity extends AppCompatActivity {
                         }
                     });
                     Button cashUpButton = dialog.findViewById(R.id.dialogButtonCashUp);
+                    final Double finalTodaysTotalSales = todaysTotalSales;
                     cashUpButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -461,7 +462,8 @@ public class CategoryListActivity extends AppCompatActivity {
                             }
                             emailBody.append("=============================" + '\n');
                             emailResultsToUser(activity, emailBody.toString(), "End of day cash up: " + df.format(date));
-                            new CashUp().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                            new CashUp(jsonPosts.length(), String.format(Locale.getDefault(), "%.2f", average), String.format(Locale.getDefault(), "%.2f",
+                                                                                                                              finalTodaysTotalSales)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                     });
 
@@ -477,13 +479,19 @@ public class CategoryListActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     private class CashUp extends AsyncTask<Integer, Integer, String> {
 
-        CashUp() {
+        int count;
+        String average;
+        String total;
+        CashUp(int count, String average, String total) {
+            this.count = count;
+            this.average = average;
+            this.total = total;
         }
 
         @Override
         protected String doInBackground(Integer... params) {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-            ConnectToServer.cashUp();
+            ConnectToServer.cashUp(count,average,total);
             return null;
         }
 
